@@ -1,17 +1,48 @@
-import { mockTrabalhos } from '@/data/mock';
+import { useEffect, useState } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 import { WorkCard } from '@/components/WorkCard';
 import { ClipboardList, Clock, CheckCircle2, AlertTriangle } from 'lucide-react';
 import { motion } from 'framer-motion';
+import type { Tables } from '@/integrations/supabase/types';
 
-const kpis = [
-  { label: 'Pendentes', value: mockTrabalhos.filter(t => t.status === 'PENDENTE').length, icon: ClipboardList, color: 'bg-warning/15 text-foreground' },
-  { label: 'Em andamento', value: mockTrabalhos.filter(t => t.status === 'ANDAMENTO').length, icon: Clock, color: 'bg-primary/15 text-foreground' },
-  { label: 'Concluídos', value: mockTrabalhos.filter(t => t.status === 'CONCLUIDO').length, icon: CheckCircle2, color: 'bg-success/15 text-foreground' },
-  { label: 'Total', value: mockTrabalhos.length, icon: AlertTriangle, color: 'bg-secondary text-secondary-foreground' },
-];
+type Trabalho = Tables<'trabalhos'> & {
+  clientes: Tables<'clientes'> | null;
+  tecnico_profile: Tables<'profiles'> | null;
+};
 
 export default function Dashboard() {
-  const trabalhosHoje = mockTrabalhos.filter(t => t.status !== 'CANCELADO');
+  const [trabalhos, setTrabalhos] = useState<Trabalho[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetch() {
+      const { data } = await supabase
+        .from('trabalhos')
+        .select('*, clientes(*), tecnico_profile:profiles!trabalhos_tecnico_id_fkey(*)')
+        .order('created_at', { ascending: false });
+      setTrabalhos((data as Trabalho[]) || []);
+      setLoading(false);
+    }
+    fetch();
+  }, []);
+
+  const counts = {
+    pendentes: trabalhos.filter(t => t.status === 'PENDENTE').length,
+    andamento: trabalhos.filter(t => t.status === 'ANDAMENTO').length,
+    concluidos: trabalhos.filter(t => t.status === 'CONCLUIDO').length,
+    total: trabalhos.length,
+  };
+
+  const kpis = [
+    { label: 'Pendentes', value: counts.pendentes, icon: ClipboardList, color: 'bg-warning/15 text-foreground' },
+    { label: 'Em andamento', value: counts.andamento, icon: Clock, color: 'bg-primary/15 text-foreground' },
+    { label: 'Concluídos', value: counts.concluidos, icon: CheckCircle2, color: 'bg-success/15 text-foreground' },
+    { label: 'Total', value: counts.total, icon: AlertTriangle, color: 'bg-secondary text-secondary-foreground' },
+  ];
+
+  if (loading) {
+    return <div className="flex justify-center py-12"><div className="animate-spin w-8 h-8 border-2 border-primary border-t-transparent rounded-full" /></div>;
+  }
 
   return (
     <div className="space-y-6">
@@ -20,32 +51,26 @@ export default function Dashboard() {
         <p className="text-sm text-muted-foreground mt-1">Visão geral dos atendimentos</p>
       </div>
 
-      {/* KPIs */}
       <div className="grid grid-cols-2 gap-3">
         {kpis.map((kpi, i) => (
-          <motion.div
-            key={kpi.label}
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: i * 0.08 }}
-            className={`${kpi.color} rounded-xl p-4 flex items-center gap-3`}
-          >
+          <motion.div key={kpi.label} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.08 }}
+            className={`${kpi.color} rounded-xl p-4 flex items-center gap-3`}>
             <kpi.icon className="w-8 h-8 opacity-60" />
-            <div>
-              <p className="text-2xl font-bold">{kpi.value}</p>
-              <p className="text-xs opacity-70">{kpi.label}</p>
-            </div>
+            <div><p className="text-2xl font-bold">{kpi.value}</p><p className="text-xs opacity-70">{kpi.label}</p></div>
           </motion.div>
         ))}
       </div>
 
-      {/* Recent */}
       <div>
         <h2 className="font-heading text-lg font-semibold text-foreground mb-3">Trabalhos recentes</h2>
         <div className="space-y-3">
-          {trabalhosHoje.map(t => (
-            <WorkCard key={t.id} trabalho={t} />
-          ))}
+          {trabalhos.length === 0 ? (
+            <p className="text-sm text-muted-foreground text-center py-8">Nenhum trabalho cadastrado ainda.</p>
+          ) : (
+            trabalhos.slice(0, 10).map(t => (
+              <WorkCard key={t.id} trabalho={t} />
+            ))
+          )}
         </div>
       </div>
     </div>

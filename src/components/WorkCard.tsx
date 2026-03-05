@@ -1,10 +1,15 @@
-import { TrabalhoTecnico } from '@/types';
+import type { Tables } from '@/integrations/supabase/types';
 import { StatusBadge, PrioridadeBadge } from './StatusBadge';
 import { Calendar, MapPin, User } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
+type Trabalho = Tables<'trabalhos'> & {
+  clientes?: Tables<'clientes'> | null;
+  tecnico_profile?: Tables<'profiles'> | null;
+};
+
 interface WorkCardProps {
-  trabalho: TrabalhoTecnico;
+  trabalho: Trabalho;
   showTecnico?: boolean;
 }
 
@@ -25,21 +30,15 @@ export function WorkCard({ trabalho, showTecnico = true }: WorkCardProps) {
 
       <div className="flex flex-wrap gap-2 items-center text-xs text-muted-foreground">
         <PrioridadeBadge prioridade={trabalho.prioridade} />
-        {trabalho.cliente && (
-          <span className="flex items-center gap-1">
-            <MapPin className="w-3 h-3" />
-            {trabalho.cliente.nome}
-          </span>
+        {trabalho.clientes && (
+          <span className="flex items-center gap-1"><MapPin className="w-3 h-3" />{trabalho.clientes.nome}</span>
         )}
-        {showTecnico && trabalho.tecnico && (
-          <span className="flex items-center gap-1">
-            <User className="w-3 h-3" />
-            {trabalho.tecnico.nome}
-          </span>
+        {showTecnico && trabalho.tecnico_profile && (
+          <span className="flex items-center gap-1"><User className="w-3 h-3" />{trabalho.tecnico_profile.nome}</span>
         )}
         <span className="flex items-center gap-1 ml-auto">
           <Calendar className="w-3 h-3" />
-          {new Date(trabalho.dataPrevista).toLocaleDateString('pt-BR')}
+          {new Date(trabalho.data_prevista).toLocaleDateString('pt-BR')}
         </span>
       </div>
     </button>
