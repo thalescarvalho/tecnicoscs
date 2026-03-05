@@ -1,7 +1,9 @@
-import { useState } from 'react';
-import { mockTrabalhos } from '@/data/mock';
+import { useState, useEffect } from 'react';
+import { fetchTrabalhosWithRelations, TrabalhoWithRelations } from '@/lib/queries';
 import { WorkCard } from '@/components/WorkCard';
-import { TrabalhoStatus } from '@/types';
+import type { Enums } from '@/integrations/supabase/types';
+
+type TrabalhoStatus = Enums<'trabalho_status'>;
 
 const tabs: { label: string; value: TrabalhoStatus | 'TODOS' }[] = [
   { label: 'Todos', value: 'TODOS' },
@@ -12,41 +14,31 @@ const tabs: { label: string; value: TrabalhoStatus | 'TODOS' }[] = [
 
 export default function Trabalhos() {
   const [filter, setFilter] = useState<TrabalhoStatus | 'TODOS'>('TODOS');
+  const [trabalhos, setTrabalhos] = useState<TrabalhoWithRelations[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const filtered = filter === 'TODOS'
-    ? mockTrabalhos
-    : mockTrabalhos.filter(t => t.status === filter);
+  useEffect(() => {
+    fetchTrabalhosWithRelations().then(data => { setTrabalhos(data); setLoading(false); });
+  }, []);
+
+  const filtered = filter === 'TODOS' ? trabalhos : trabalhos.filter(t => t.status === filter);
+
+  if (loading) return <div className="flex justify-center py-12"><div className="animate-spin w-8 h-8 border-2 border-primary border-t-transparent rounded-full" /></div>;
 
   return (
     <div className="space-y-4">
       <h1 className="text-2xl font-heading font-bold text-foreground">Trabalhos</h1>
-
-      {/* Filter tabs */}
       <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1">
         {tabs.map(tab => (
-          <button
-            key={tab.value}
-            onClick={() => setFilter(tab.value)}
-            className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors ${
-              filter === tab.value
-                ? 'bg-primary text-primary-foreground'
-                : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
-            }`}
-          >
+          <button key={tab.value} onClick={() => setFilter(tab.value)}
+            className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors ${filter === tab.value ? 'bg-primary text-primary-foreground' : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'}`}>
             {tab.label}
           </button>
         ))}
       </div>
-
-      {/* List */}
       <div className="space-y-3">
-        {filtered.length === 0 ? (
-          <div className="text-center py-12 text-muted-foreground">
-            <p className="text-sm">Nenhum trabalho encontrado</p>
-          </div>
-        ) : (
-          filtered.map(t => <WorkCard key={t.id} trabalho={t} />)
-        )}
+        {filtered.length === 0 ? <p className="text-sm text-muted-foreground text-center py-12">Nenhum trabalho encontrado</p>
+          : filtered.map(t => <WorkCard key={t.id} trabalho={t} />)}
       </div>
     </div>
   );

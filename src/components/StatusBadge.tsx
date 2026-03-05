@@ -1,7 +1,10 @@
-import { TrabalhoStatus, Prioridade } from '@/types';
+import type { Enums } from '@/integrations/supabase/types';
+
+type TrabalhoStatus = Enums<'trabalho_status'>;
+type Prioridade = Enums<'prioridade'>;
 
 const statusConfig: Record<TrabalhoStatus, { label: string; className: string }> = {
-  PENDENTE: { label: 'Pendente', className: 'bg-warning/15 text-warning-foreground border border-warning/30' },
+  PENDENTE: { label: 'Pendente', className: 'bg-warning/15 text-foreground border border-warning/30' },
   ANDAMENTO: { label: 'Em andamento', className: 'bg-primary/15 text-foreground border border-primary/30' },
   CONCLUIDO: { label: 'Concluído', className: 'bg-success/15 text-foreground border border-success/30' },
   CANCELADO: { label: 'Cancelado', className: 'bg-destructive/15 text-foreground border border-destructive/30' },
