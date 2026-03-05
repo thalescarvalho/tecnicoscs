@@ -1,13 +1,9 @@
 import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { fetchTrabalhosWithRelations, TrabalhoWithRelations } from '@/lib/queries';
 import { WorkCard } from '@/components/WorkCard';
-import type { Tables, Enums } from '@/integrations/supabase/types';
+import type { Enums } from '@/integrations/supabase/types';
 
 type TrabalhoStatus = Enums<'trabalho_status'>;
-type Trabalho = Tables<'trabalhos'> & {
-  clientes: Tables<'clientes'> | null;
-  tecnico_profile: Tables<'profiles'> | null;
-};
 
 const tabs: { label: string; value: TrabalhoStatus | 'TODOS' }[] = [
   { label: 'Todos', value: 'TODOS' },
@@ -18,26 +14,16 @@ const tabs: { label: string; value: TrabalhoStatus | 'TODOS' }[] = [
 
 export default function Trabalhos() {
   const [filter, setFilter] = useState<TrabalhoStatus | 'TODOS'>('TODOS');
-  const [trabalhos, setTrabalhos] = useState<Trabalho[]>([]);
+  const [trabalhos, setTrabalhos] = useState<TrabalhoWithRelations[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    async function fetch() {
-      const { data } = await supabase
-        .from('trabalhos')
-        .select('*, clientes(*), tecnico_profile:profiles!trabalhos_tecnico_id_fkey(*)')
-        .order('created_at', { ascending: false });
-      setTrabalhos((data as Trabalho[]) || []);
-      setLoading(false);
-    }
-    fetch();
+    fetchTrabalhosWithRelations().then(data => { setTrabalhos(data); setLoading(false); });
   }, []);
 
   const filtered = filter === 'TODOS' ? trabalhos : trabalhos.filter(t => t.status === filter);
 
-  if (loading) {
-    return <div className="flex justify-center py-12"><div className="animate-spin w-8 h-8 border-2 border-primary border-t-transparent rounded-full" /></div>;
-  }
+  if (loading) return <div className="flex justify-center py-12"><div className="animate-spin w-8 h-8 border-2 border-primary border-t-transparent rounded-full" /></div>;
 
   return (
     <div className="space-y-4">
@@ -51,9 +37,8 @@ export default function Trabalhos() {
         ))}
       </div>
       <div className="space-y-3">
-        {filtered.length === 0 ? (
-          <p className="text-sm text-muted-foreground text-center py-12">Nenhum trabalho encontrado</p>
-        ) : filtered.map(t => <WorkCard key={t.id} trabalho={t} />)}
+        {filtered.length === 0 ? <p className="text-sm text-muted-foreground text-center py-12">Nenhum trabalho encontrado</p>
+          : filtered.map(t => <WorkCard key={t.id} trabalho={t} />)}
       </div>
     </div>
   );

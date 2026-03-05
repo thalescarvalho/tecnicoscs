@@ -1,29 +1,15 @@
 import { useEffect, useState } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { fetchTrabalhosWithRelations, TrabalhoWithRelations } from '@/lib/queries';
 import { WorkCard } from '@/components/WorkCard';
 import { ClipboardList, Clock, CheckCircle2, AlertTriangle } from 'lucide-react';
 import { motion } from 'framer-motion';
-import type { Tables } from '@/integrations/supabase/types';
-
-type Trabalho = Tables<'trabalhos'> & {
-  clientes: Tables<'clientes'> | null;
-  tecnico_profile: Tables<'profiles'> | null;
-};
 
 export default function Dashboard() {
-  const [trabalhos, setTrabalhos] = useState<Trabalho[]>([]);
+  const [trabalhos, setTrabalhos] = useState<TrabalhoWithRelations[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    async function fetch() {
-      const { data } = await supabase
-        .from('trabalhos')
-        .select('*, clientes(*), tecnico_profile:profiles!trabalhos_tecnico_id_fkey(*)')
-        .order('created_at', { ascending: false });
-      setTrabalhos((data as Trabalho[]) || []);
-      setLoading(false);
-    }
-    fetch();
+    fetchTrabalhosWithRelations().then(data => { setTrabalhos(data); setLoading(false); });
   }, []);
 
   const counts = {
@@ -40,9 +26,7 @@ export default function Dashboard() {
     { label: 'Total', value: counts.total, icon: AlertTriangle, color: 'bg-secondary text-secondary-foreground' },
   ];
 
-  if (loading) {
-    return <div className="flex justify-center py-12"><div className="animate-spin w-8 h-8 border-2 border-primary border-t-transparent rounded-full" /></div>;
-  }
+  if (loading) return <div className="flex justify-center py-12"><div className="animate-spin w-8 h-8 border-2 border-primary border-t-transparent rounded-full" /></div>;
 
   return (
     <div className="space-y-6">
@@ -50,7 +34,6 @@ export default function Dashboard() {
         <h1 className="text-2xl font-heading font-bold text-foreground">Dashboard</h1>
         <p className="text-sm text-muted-foreground mt-1">Visão geral dos atendimentos</p>
       </div>
-
       <div className="grid grid-cols-2 gap-3">
         {kpis.map((kpi, i) => (
           <motion.div key={kpi.label} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.08 }}
@@ -60,17 +43,11 @@ export default function Dashboard() {
           </motion.div>
         ))}
       </div>
-
       <div>
         <h2 className="font-heading text-lg font-semibold text-foreground mb-3">Trabalhos recentes</h2>
         <div className="space-y-3">
-          {trabalhos.length === 0 ? (
-            <p className="text-sm text-muted-foreground text-center py-8">Nenhum trabalho cadastrado ainda.</p>
-          ) : (
-            trabalhos.slice(0, 10).map(t => (
-              <WorkCard key={t.id} trabalho={t} />
-            ))
-          )}
+          {trabalhos.length === 0 ? <p className="text-sm text-muted-foreground text-center py-8">Nenhum trabalho cadastrado.</p>
+            : trabalhos.slice(0, 10).map(t => <WorkCard key={t.id} trabalho={t} />)}
         </div>
       </div>
     </div>

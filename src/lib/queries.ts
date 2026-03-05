@@ -9,7 +9,7 @@ export type TrabalhoWithRelations = Tables<'trabalhos'> & {
 export async function fetchTrabalhosWithRelations(filters?: { status?: string; tecnicoId?: string }): Promise<TrabalhoWithRelations[]> {
   let query = supabase.from('trabalhos').select('*, clientes(*)').order('created_at', { ascending: false });
   
-  if (filters?.status) query = query.eq('status', filters.status);
+  if (filters?.status) query = query.eq('status', filters.status as any);
   if (filters?.tecnicoId) query = query.eq('tecnico_id', filters.tecnicoId);
 
   const { data: trabalhos } = await query;

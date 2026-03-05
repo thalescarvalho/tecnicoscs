@@ -2,6 +2,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { fetchTrabalhoById, TrabalhoWithRelations } from '@/lib/queries';
 import { StatusBadge, PrioridadeBadge } from '@/components/StatusBadge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,16 +11,11 @@ import { toast } from 'sonner';
 import { motion } from 'framer-motion';
 import type { Tables } from '@/integrations/supabase/types';
 
-type Trabalho = Tables<'trabalhos'> & {
-  clientes: Tables<'clientes'> | null;
-  tecnico_profile: Tables<'profiles'> | null;
-};
-
 export default function TrabalhoDetalhes() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { user, role } = useAuth();
-  const [trabalho, setTrabalho] = useState<Trabalho | null>(null);
+  const [trabalho, setTrabalho] = useState<TrabalhoWithRelations | null>(null);
   const [itens, setItens] = useState<Tables<'itens_produzidos'>[]>([]);
   const [fotos, setFotos] = useState<Tables<'fotos'>[]>([]);
   const [loading, setLoading] = useState(true);
@@ -28,12 +24,12 @@ export default function TrabalhoDetalhes() {
   const [actionLoading, setActionLoading] = useState(false);
 
   async function fetchData() {
-    const [tRes, iRes, fRes] = await Promise.all([
-      supabase.from('trabalhos').select('*, clientes(*), tecnico_profile:profiles!trabalhos_tecnico_id_fkey(*)').eq('id', id!).single(),
+    const [t, iRes, fRes] = await Promise.all([
+      fetchTrabalhoById(id!),
       supabase.from('itens_produzidos').select('*').eq('trabalho_id', id!),
       supabase.from('fotos').select('*').eq('trabalho_id', id!),
     ]);
-    setTrabalho(tRes.data as Trabalho | null);
+    setTrabalho(t);
     setItens(iRes.data || []);
     setFotos(fRes.data || []);
     setLoading(false);
@@ -49,13 +45,11 @@ export default function TrabalhoDetalhes() {
         navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 10000 })
       );
       lat = pos.coords.latitude; lng = pos.coords.longitude; accuracy = pos.coords.accuracy;
-    } catch { /* location unavailable */ }
-
+    } catch { /* ok */ }
     const { error } = await supabase.from('trabalhos').update({
-      status: 'ANDAMENTO', start_at: new Date().toISOString(),
+      status: 'ANDAMENTO' as const, start_at: new Date().toISOString(),
       start_lat: lat, start_lng: lng, start_accuracy: accuracy,
     }).eq('id', id!);
-
     setActionLoading(false);
     if (error) { toast.error('Erro: ' + error.message); return; }
     toast.success('Trabalho iniciado!' + (lat ? ' Localização capturada.' : ' Localização indisponível.'));
@@ -72,11 +66,9 @@ export default function TrabalhoDetalhes() {
       );
       lat = pos.coords.latitude; lng = pos.coords.longitude;
     } catch { /* ok */ }
-
     const { error } = await supabase.from('trabalhos').update({
-      status: 'CONCLUIDO', end_at: new Date().toISOString(), end_lat: lat, end_lng: lng,
+      status: 'CONCLUIDO' as const, end_at: new Date().toISOString(), end_lat: lat, end_lng: lng,
     }).eq('id', id!);
-
     setActionLoading(false);
     if (error) { toast.error('Erro: ' + error.message); return; }
     toast.success('Trabalho finalizado! Relatório gerado.');
@@ -107,13 +99,8 @@ export default function TrabalhoDetalhes() {
     toast.success('Foto adicionada!');
   };
 
-  if (loading) {
-    return <div className="flex justify-center py-12"><div className="animate-spin w-8 h-8 border-2 border-primary border-t-transparent rounded-full" /></div>;
-  }
-
-  if (!trabalho) {
-    return <div className="text-center py-12"><p className="text-muted-foreground">Trabalho não encontrado</p><Button variant="outline" onClick={() => navigate(-1)} className="mt-4">Voltar</Button></div>;
-  }
+  if (loading) return <div className="flex justify-center py-12"><div className="animate-spin w-8 h-8 border-2 border-primary border-t-transparent rounded-full" /></div>;
+  if (!trabalho) return <div className="text-center py-12"><p className="text-muted-foreground">Trabalho não encontrado</p><Button variant="outline" onClick={() => navigate(-1)} className="mt-4">Voltar</Button></div>;
 
   const isTecnico = role === 'tecnico';
 
@@ -127,7 +114,6 @@ export default function TrabalhoDetalhes() {
         </div>
       </div>
 
-      {/* Cliente */}
       <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="glass-card rounded-xl p-4 space-y-2">
         <h3 className="text-sm font-semibold text-foreground flex items-center gap-2"><User className="w-4 h-4 text-primary" /> Cliente</h3>
         <p className="text-sm font-medium">{trabalho.clientes?.nome}</p>
@@ -135,14 +121,12 @@ export default function TrabalhoDetalhes() {
         <p className="text-xs text-muted-foreground flex items-center gap-1"><MapPin className="w-3 h-3" /> {trabalho.clientes?.endereco}</p>
       </motion.div>
 
-      {/* Descrição */}
       <div className="glass-card rounded-xl p-4 space-y-2">
         <h3 className="text-sm font-semibold text-foreground">Descrição</h3>
         <p className="text-sm text-muted-foreground">{trabalho.descricao}</p>
         <p className="text-xs text-muted-foreground">Tipo: {trabalho.tipo_servico} · Previsto: {new Date(trabalho.data_prevista).toLocaleDateString('pt-BR')}</p>
       </div>
 
-      {/* Timeline */}
       {(trabalho.start_at || trabalho.end_at) && (
         <div className="glass-card rounded-xl p-4 space-y-3">
           <h3 className="text-sm font-semibold text-foreground flex items-center gap-2"><Clock className="w-4 h-4 text-primary" /> Linha do tempo</h3>
@@ -163,10 +147,7 @@ export default function TrabalhoDetalhes() {
           {trabalho.end_at && (
             <div className="flex items-start gap-3">
               <div className="w-2 h-2 rounded-full bg-success mt-1.5" />
-              <div>
-                <p className="text-xs font-medium">Finalizado</p>
-                <p className="text-xs text-muted-foreground">{new Date(trabalho.end_at).toLocaleString('pt-BR')}</p>
-              </div>
+              <div><p className="text-xs font-medium">Finalizado</p><p className="text-xs text-muted-foreground">{new Date(trabalho.end_at).toLocaleString('pt-BR')}</p></div>
             </div>
           )}
           {trabalho.start_at && trabalho.end_at && (
@@ -177,7 +158,6 @@ export default function TrabalhoDetalhes() {
         </div>
       )}
 
-      {/* Itens */}
       <div className="glass-card rounded-xl p-4 space-y-3">
         <h3 className="text-sm font-semibold text-foreground flex items-center gap-2"><Package className="w-4 h-4 text-primary" /> Itens produzidos ({itens.length})</h3>
         {itens.length > 0 ? (
@@ -199,7 +179,6 @@ export default function TrabalhoDetalhes() {
         )}
       </div>
 
-      {/* Fotos */}
       <div className="glass-card rounded-xl p-4 space-y-3">
         <h3 className="text-sm font-semibold text-foreground flex items-center gap-2"><Camera className="w-4 h-4 text-primary" /> Fotos ({fotos.length})</h3>
         {fotos.length > 0 ? (
@@ -222,18 +201,13 @@ export default function TrabalhoDetalhes() {
         )}
       </div>
 
-      {/* Actions */}
       {isTecnico && (
         <div className="space-y-3 pt-2">
           {trabalho.status === 'PENDENTE' && (
-            <Button onClick={handleIniciar} className="w-full h-14 text-base font-semibold" disabled={actionLoading}>
-              🚀 Iniciar Trabalho
-            </Button>
+            <Button onClick={handleIniciar} className="w-full h-14 text-base font-semibold" disabled={actionLoading}>🚀 Iniciar Trabalho</Button>
           )}
           {trabalho.status === 'ANDAMENTO' && (
-            <Button onClick={handleFinalizar} className="w-full h-14 text-base font-semibold bg-success hover:bg-success/90 text-success-foreground" disabled={actionLoading}>
-              ✅ Finalizar e Gerar Relatório
-            </Button>
+            <Button onClick={handleFinalizar} className="w-full h-14 text-base font-semibold bg-success hover:bg-success/90 text-success-foreground" disabled={actionLoading}>✅ Finalizar e Gerar Relatório</Button>
           )}
         </div>
       )}
