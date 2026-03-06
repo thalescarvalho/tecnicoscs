@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { LayoutDashboard, ClipboardList, UserPlus, FileText, Wrench, Menu, X, LogOut } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import logo from '@/assets/logo.png';
 
 const gestorLinks = [
   { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
