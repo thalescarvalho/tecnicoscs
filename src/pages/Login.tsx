@@ -48,11 +48,12 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen bg-background flex flex-col items-center justify-center px-6">
+    <div className="min-h-screen bg-gradient-to-b from-amber-50 to-orange-100 flex flex-col items-center justify-center px-6">
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-sm space-y-8">
-        <div className="text-center space-y-2">
-          <h1 className="text-4xl font-heading font-bold text-foreground">PanTech</h1>
-          <p className="text-sm text-muted-foreground">Gestão de trabalhos técnicos<br />em panificação e confeitaria</p>
+        <div className="text-center space-y-3">
+          <img src={logo} alt="Finíssimo" className="h-16 w-auto mx-auto" />
+          <h1 className="text-4xl font-heading font-bold text-amber-900">Finíssimo</h1>
+          <p className="text-sm text-amber-700">Gestão de trabalhos técnicos<br />em panificação e confeitaria</p>
         </div>
 
         <Tabs value={tab} onValueChange={setTab} className="w-full">

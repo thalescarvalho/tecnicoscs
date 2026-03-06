@@ -43,10 +43,10 @@ export function AppLayout({ children }: { children: ReactNode }) {
             <h1 className="font-heading text-lg font-bold text-white tracking-tight">Finíssimo</h1>
           </div>
           <div className="flex items-center gap-2">
-            <span className="text-xs text-muted-foreground hidden sm:block">{profile?.nome}</span>
-            <span className="status-badge bg-primary/10 text-foreground border border-primary/20 text-[10px]">{roleLabel}</span>
-            <button onClick={handleSignOut} className="p-1.5 rounded-lg hover:bg-secondary transition-colors">
-              <LogOut className="w-4 h-4 text-muted-foreground" />
+            <span className="text-xs text-white/90 hidden sm:block">{profile?.nome}</span>
+            <span className="status-badge bg-white/20 text-white border border-white/30 text-[10px]">{roleLabel}</span>
+            <button onClick={handleSignOut} className="p-1.5 rounded-lg hover:bg-white/20 transition-colors">
+              <LogOut className="w-4 h-4 text-white" />
             </button>
           </div>
         </div>
