@@ -23,7 +23,7 @@ export default function Login() {
       toast.error(error.message);
       return;
     }
-    toast.success('Bem-vindo(a) ao PanTech!');
+    toast.success('Bem-vindo(a) ao Finíssimo!');
     // Auth state change will redirect
   };
 
