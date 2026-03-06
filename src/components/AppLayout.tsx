@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { LayoutDashboard, ClipboardList, UserPlus, FileText, Wrench, Menu, X, LogOut } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import logo from '@/assets/logo.png';
 
 const gestorLinks = [
   { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -32,19 +33,20 @@ export function AppLayout({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-screen bg-background flex flex-col">
       {/* Header */}
-      <header className="sticky top-0 z-50 bg-card/90 backdrop-blur-md border-b border-border px-4 py-3">
+      <header className="sticky top-0 z-50 bg-gradient-to-r from-amber-600 to-orange-600 text-white border-b border-amber-700 px-4 py-3">
         <div className="flex items-center justify-between max-w-4xl mx-auto">
           <div className="flex items-center gap-3">
-            <button onClick={() => setMenuOpen(!menuOpen)} className="p-1.5 rounded-lg hover:bg-secondary transition-colors lg:hidden">
+            <button onClick={() => setMenuOpen(!menuOpen)} className="p-1.5 rounded-lg hover:bg-white/20 transition-colors lg:hidden">
               {menuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>
-            <h1 className="font-heading text-lg font-bold text-foreground tracking-tight">PanTech</h1>
+            <img src={logo} alt="Finíssimo" className="h-6 w-auto" />
+            <h1 className="font-heading text-lg font-bold text-white tracking-tight">Finíssimo</h1>
           </div>
           <div className="flex items-center gap-2">
-            <span className="text-xs text-muted-foreground hidden sm:block">{profile?.nome}</span>
-            <span className="status-badge bg-primary/10 text-foreground border border-primary/20 text-[10px]">{roleLabel}</span>
-            <button onClick={handleSignOut} className="p-1.5 rounded-lg hover:bg-secondary transition-colors">
-              <LogOut className="w-4 h-4 text-muted-foreground" />
+            <span className="text-xs text-white/90 hidden sm:block">{profile?.nome}</span>
+            <span className="status-badge bg-white/20 text-white border border-white/30 text-[10px]">{roleLabel}</span>
+            <button onClick={handleSignOut} className="p-1.5 rounded-lg hover:bg-white/20 transition-colors">
+              <LogOut className="w-4 h-4 text-white" />
             </button>
           </div>
         </div>
