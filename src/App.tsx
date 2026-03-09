@@ -28,9 +28,9 @@ function NoRolePage() {
   const navigate = useNavigate();
   return (
     <div className="min-h-screen bg-gradient-to-b from-amber-50 to-orange-100 flex flex-col items-center justify-center px-6 text-center space-y-4">
-      <h1 className="text-2xl font-heading font-bold text-amber-900">Olá, {profile?.nome}!</h1>
-      <p className="text-amber-700">Sua conta ainda não tem um papel atribuído (Gestor ou Técnico).<br/>Peça ao administrador para configurar seu acesso.</p>
-      <button onClick={async () => { await signOut(); navigate('/login'); }} className="px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-colors">Sair</button>
+      <h1 className="text-2xl font-heading font-bold text-foreground">Olá, {profile?.nome}!</h1>
+      <p className="text-muted-foreground">Sua conta ainda não tem um papel atribuído (Gestor ou Técnico).<br/>Peça ao administrador para configurar seu acesso.</p>
+      <button onClick={async () => { await signOut(); navigate('/login'); }} className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors">Sair</button>
     </div>
   );
 }
