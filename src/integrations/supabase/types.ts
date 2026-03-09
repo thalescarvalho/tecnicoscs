@@ -58,6 +58,7 @@ export type Database = {
           nome: string
           referencia: string | null
           telefone: string
+          vendedor: string | null
         }
         Insert: {
           created_at?: string
@@ -67,6 +68,7 @@ export type Database = {
           nome: string
           referencia?: string | null
           telefone: string
+          vendedor?: string | null
         }
         Update: {
           created_at?: string
@@ -76,6 +78,7 @@ export type Database = {
           nome?: string
           referencia?: string | null
           telefone?: string
+          vendedor?: string | null
         }
         Relationships: []
       }
