@@ -10,6 +10,8 @@ import Dashboard from "./pages/gestor/Dashboard";
 import Trabalhos from "./pages/gestor/Trabalhos";
 import CriarTrabalho from "./pages/gestor/CriarTrabalho";
 import Relatorios from "./pages/gestor/Relatorios";
+import Usuarios from "./pages/gestor/Usuarios";
+import Clientes from "./pages/gestor/Clientes";
 import MeusTrabalhos from "./pages/tecnico/MeusTrabalhos";
 import TrabalhoDetalhes from "./pages/TrabalhoDetalhes";
 import NotFound from "./pages/NotFound";
