@@ -1,14 +1,16 @@
 import { ReactNode, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
-import { LayoutDashboard, ClipboardList, UserPlus, FileText, Wrench, Menu, X, LogOut } from 'lucide-react';
+import { LayoutDashboard, ClipboardList, UserPlus, FileText, Wrench, Menu, X, LogOut, Users, Store } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import logo from '@/assets/logo.png';
 
 const gestorLinks = [
   { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { to: '/trabalhos', label: 'Trabalhos', icon: ClipboardList },
-  { to: '/trabalhos/novo', label: 'Novo Trabalho', icon: UserPlus },
+  { to: '/trabalhos/novo', label: 'Novo', icon: UserPlus },
+  { to: '/clientes', label: 'Clientes', icon: Store },
+  { to: '/usuarios', label: 'Usuários', icon: Users },
   { to: '/relatorios', label: 'Relatórios', icon: FileText },
 ];
 
