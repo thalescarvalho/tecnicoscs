@@ -40,12 +40,13 @@ export default function Login() {
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!nome.trim()) { toast.error('Informe seu nome'); return; }
+    if (!nome.trim() || !sobrenome.trim()) { toast.error('Informe nome e sobrenome'); return; }
     setLoading(true);
+    const nomeCompleto = `${nome.trim()} ${sobrenome.trim()}`;
     const { error } = await supabase.auth.signUp({
       email, password,
       options: {
-        data: { nome },
+        data: { nome: nomeCompleto },
         emailRedirectTo: window.location.origin,
       }
     });
