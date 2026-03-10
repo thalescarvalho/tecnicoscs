@@ -15,7 +15,7 @@ export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [nome, setNome] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [sobrenome, setSobrenome] = useState('');
   const [tab, setTab] = useState<string>('login');
 
   useEffect(() => {
