@@ -147,7 +147,15 @@ export default function TrabalhoDetalhes() {
           {trabalho.end_at && (
             <div className="flex items-start gap-3">
               <div className="w-2 h-2 rounded-full bg-success mt-1.5" />
-              <div><p className="text-xs font-medium">Finalizado</p><p className="text-xs text-muted-foreground">{new Date(trabalho.end_at).toLocaleString('pt-BR')}</p></div>
+              <div>
+                <p className="text-xs font-medium">Finalizado</p>
+                <p className="text-xs text-muted-foreground">{new Date(trabalho.end_at).toLocaleString('pt-BR')}</p>
+                {trabalho.end_lat && (
+                  <a href={`https://www.google.com/maps?q=${trabalho.end_lat},${trabalho.end_lng}`} target="_blank" rel="noopener noreferrer" className="text-xs text-primary flex items-center gap-1 mt-0.5">
+                    <Navigation className="w-3 h-3" /> Ver no mapa (fim)
+                  </a>
+                )}
+              </div>
             </div>
           )}
           {trabalho.start_at && trabalho.end_at && (
