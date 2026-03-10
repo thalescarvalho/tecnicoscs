@@ -92,9 +92,15 @@ export default function Login() {
 
           <TabsContent value="signup">
             <form onSubmit={handleSignup} className="space-y-4 mt-4">
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-foreground">Nome completo</label>
-                <Input placeholder="Seu nome" value={nome} onChange={e => setNome(e.target.value)} className="h-12" required />
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-foreground">Nome *</label>
+                  <Input placeholder="Nome" value={nome} onChange={e => setNome(e.target.value)} className="h-12" required />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-foreground">Sobrenome *</label>
+                  <Input placeholder="Sobrenome" value={sobrenome} onChange={e => setSobrenome(e.target.value)} className="h-12" required />
+                </div>
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium text-foreground">E-mail</label>
