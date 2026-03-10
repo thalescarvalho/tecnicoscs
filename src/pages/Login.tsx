@@ -15,6 +15,7 @@ export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [nome, setNome] = useState('');
+  const [sobrenome, setSobrenome] = useState('');
   const [loading, setLoading] = useState(false);
   const [tab, setTab] = useState<string>('login');
 
@@ -40,12 +41,13 @@ export default function Login() {
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!nome.trim()) { toast.error('Informe seu nome'); return; }
+    if (!nome.trim() || !sobrenome.trim()) { toast.error('Informe nome e sobrenome'); return; }
     setLoading(true);
+    const nomeCompleto = `${nome.trim()} ${sobrenome.trim()}`;
     const { error } = await supabase.auth.signUp({
       email, password,
       options: {
-        data: { nome },
+        data: { nome: nomeCompleto },
         emailRedirectTo: window.location.origin,
       }
     });
@@ -91,9 +93,15 @@ export default function Login() {
 
           <TabsContent value="signup">
             <form onSubmit={handleSignup} className="space-y-4 mt-4">
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-foreground">Nome completo</label>
-                <Input placeholder="Seu nome" value={nome} onChange={e => setNome(e.target.value)} className="h-12" required />
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-foreground">Nome *</label>
+                  <Input placeholder="Nome" value={nome} onChange={e => setNome(e.target.value)} className="h-12" required />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-foreground">Sobrenome *</label>
+                  <Input placeholder="Sobrenome" value={sobrenome} onChange={e => setSobrenome(e.target.value)} className="h-12" required />
+                </div>
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium text-foreground">E-mail</label>
