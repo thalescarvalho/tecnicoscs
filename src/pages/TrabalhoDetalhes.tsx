@@ -103,6 +103,23 @@ export default function TrabalhoDetalhes() {
   if (!trabalho) return <div className="text-center py-12"><p className="text-muted-foreground">Trabalho não encontrado</p><Button variant="outline" onClick={() => navigate(-1)} className="mt-4">Voltar</Button></div>;
 
   const isTecnico = role === 'tecnico';
+  const isGestor = role === 'gestor';
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+
+  const handleDelete = async () => {
+    setActionLoading(true);
+    // Delete related records first
+    await Promise.all([
+      supabase.from('itens_produzidos').delete().eq('trabalho_id', id!),
+      supabase.from('fotos').delete().eq('trabalho_id', id!),
+      supabase.from('audit_log').delete().eq('trabalho_id', id!),
+    ]);
+    const { error } = await supabase.from('trabalhos').delete().eq('id', id!);
+    setActionLoading(false);
+    if (error) { toast.error('Erro ao excluir: ' + error.message); return; }
+    toast.success('Trabalho excluído com sucesso.');
+    navigate(-1);
+  };
 
   return (
     <div className="space-y-5">
@@ -112,7 +129,23 @@ export default function TrabalhoDetalhes() {
           <h1 className="text-lg font-heading font-bold text-foreground truncate">{trabalho.titulo}</h1>
           <div className="flex items-center gap-2 mt-1"><StatusBadge status={trabalho.status} /><PrioridadeBadge prioridade={trabalho.prioridade} /></div>
         </div>
+        {isGestor && (
+          <button onClick={() => setShowDeleteConfirm(true)} className="p-2 rounded-lg hover:bg-destructive/10 text-destructive transition-colors">
+            <Trash2 className="w-5 h-5" />
+          </button>
+        )}
       </div>
+
+      {showDeleteConfirm && (
+        <div className="glass-card rounded-xl p-4 border border-destructive/30 bg-destructive/5 space-y-3">
+          <p className="text-sm font-semibold text-destructive">Tem certeza que deseja excluir este trabalho?</p>
+          <p className="text-xs text-muted-foreground">Esta ação não pode ser desfeita. Todos os itens, fotos e registros associados serão removidos.</p>
+          <div className="flex gap-2">
+            <Button variant="destructive" size="sm" onClick={handleDelete} disabled={actionLoading}>Excluir</Button>
+            <Button variant="outline" size="sm" onClick={() => setShowDeleteConfirm(false)}>Cancelar</Button>
+          </div>
+        </div>
+      )}
 
       <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="glass-card rounded-xl p-4 space-y-2">
         <h3 className="text-sm font-semibold text-foreground flex items-center gap-2"><User className="w-4 h-4 text-primary" /> Cliente</h3>
