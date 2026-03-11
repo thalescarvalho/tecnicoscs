@@ -25,6 +25,7 @@ export default function TrabalhoDetalhes() {
   const [novoPeso, setNovoPeso] = useState('');
   const [actionLoading, setActionLoading] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [observacaoTecnico, setObservacaoTecnico] = useState('');
 
   async function fetchData() {
     const [t, iRes, fRes] = await Promise.all([
