@@ -265,6 +265,24 @@ export default function TrabalhoDetalhes() {
         )}
       </div>
 
+      {/* Observação do técnico */}
+      {isTecnico && trabalho.status === 'ANDAMENTO' && (
+        <div className="glass-card rounded-xl p-4 space-y-3">
+          <h3 className="text-sm font-semibold text-foreground">Observações do técnico</h3>
+          <Textarea placeholder="Adicione observações sobre o trabalho..." rows={3} value={observacaoTecnico} onChange={e => setObservacaoTecnico(e.target.value)} />
+          <Button size="sm" variant="outline" onClick={handleSaveObs}>Salvar observação</Button>
+        </div>
+      )}
+
+      {/* Observações exibidas quando já preenchidas */}
+      {trabalho.observacoes_tecnico && trabalho.status !== 'ANDAMENTO' && (
+        <div className="glass-card rounded-xl p-4 space-y-2">
+          <h3 className="text-sm font-semibold text-foreground">Observações do técnico</h3>
+          <p className="text-sm text-muted-foreground">{trabalho.observacoes_tecnico}</p>
+        </div>
+      )}
+
+      {/* Action buttons */}
       {isTecnico && (
         <div className="space-y-3 pt-2">
           {trabalho.status === 'PENDENTE' && (
@@ -272,6 +290,16 @@ export default function TrabalhoDetalhes() {
           )}
           {trabalho.status === 'ANDAMENTO' && (
             <Button onClick={handleFinalizar} className="w-full h-14 text-base font-semibold bg-success hover:bg-success/90 text-success-foreground" disabled={actionLoading}>✅ Finalizar e Gerar Relatório</Button>
+          )}
+        </div>
+      )}
+
+      {/* PDF & WhatsApp for concluded works */}
+      {trabalho.status === 'CONCLUIDO' && (
+        <div className="flex gap-2 pt-2">
+          <Button variant="outline" className="flex-1" onClick={handleExportPDF}><Download className="w-4 h-4 mr-2" /> Exportar PDF</Button>
+          {isTecnico && (
+            <Button variant="outline" className="flex-1" onClick={handleShareWhatsApp}><Share2 className="w-4 h-4 mr-2" /> Avaliação WhatsApp</Button>
           )}
         </div>
       )}
