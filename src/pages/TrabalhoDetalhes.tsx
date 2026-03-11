@@ -114,6 +114,21 @@ export default function TrabalhoDetalhes() {
   const isTecnico = role === 'tecnico';
   const isGestor = role === 'gestor';
 
+  const handleSaveObs = async () => {
+    const { error } = await supabase.from('trabalhos').update({ observacoes_tecnico: observacaoTecnico }).eq('id', id!);
+    if (error) { toast.error('Erro: ' + error.message); return; }
+    toast.success('Observação salva!');
+  };
+
+  const handleExportPDF = () => exportTrabalhoPDF(trabalho, itens);
+
+  const handleShareWhatsApp = () => {
+    const baseUrl = window.location.origin;
+    const avaliacaoUrl = `${baseUrl}/avaliacao?trabalho=${trabalho.id}`;
+    const msg = `Olá! Gostaríamos que você avaliasse o serviço "${trabalho.titulo}" realizado pela Finíssimo. Clique no link: ${avaliacaoUrl}`;
+    window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
+  };
+
   const handleDelete = async () => {
     setActionLoading(true);
     // Delete related records first
