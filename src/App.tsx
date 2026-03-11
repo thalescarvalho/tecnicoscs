@@ -10,6 +10,9 @@ import Dashboard from "./pages/gestor/Dashboard";
 import Trabalhos from "./pages/gestor/Trabalhos";
 import CriarTrabalho from "./pages/gestor/CriarTrabalho";
 import Relatorios from "./pages/gestor/Relatorios";
+import Producao from "./pages/gestor/Producao";
+import Avaliacoes from "./pages/gestor/Avaliacoes";
+import AvaliacaoPublica from "./pages/AvaliacaoPublica";
 import Usuarios from "./pages/gestor/Usuarios";
 import Clientes from "./pages/gestor/Clientes";
 import MeusTrabalhos from "./pages/tecnico/MeusTrabalhos";
@@ -67,6 +70,9 @@ const App = () => (
             <Route path="/trabalhos" element={<ProtectedRoute><RoleRoute allowedRole="gestor"><AppLayout><Trabalhos /></AppLayout></RoleRoute></ProtectedRoute>} />
             <Route path="/trabalhos/novo" element={<ProtectedRoute><RoleRoute allowedRole="gestor"><AppLayout><CriarTrabalho /></AppLayout></RoleRoute></ProtectedRoute>} />
             <Route path="/relatorios" element={<ProtectedRoute><RoleRoute allowedRole="gestor"><AppLayout><Relatorios /></AppLayout></RoleRoute></ProtectedRoute>} />
+            <Route path="/producao" element={<ProtectedRoute><RoleRoute allowedRole="gestor"><AppLayout><Producao /></AppLayout></RoleRoute></ProtectedRoute>} />
+            <Route path="/avaliacoes" element={<ProtectedRoute><RoleRoute allowedRole="gestor"><AppLayout><Avaliacoes /></AppLayout></RoleRoute></ProtectedRoute>} />
+            <Route path="/avaliacao" element={<AvaliacaoPublica />} />
             <Route path="/usuarios" element={<ProtectedRoute><RoleRoute allowedRole="gestor"><AppLayout><Usuarios /></AppLayout></RoleRoute></ProtectedRoute>} />
             <Route path="/clientes" element={<ProtectedRoute><RoleRoute allowedRole="gestor"><AppLayout><Clientes /></AppLayout></RoleRoute></ProtectedRoute>} />
             <Route path="/meus-trabalhos" element={<ProtectedRoute><RoleRoute allowedRole="tecnico"><AppLayout><MeusTrabalhos /></AppLayout></RoleRoute></ProtectedRoute>} />

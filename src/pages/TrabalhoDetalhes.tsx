@@ -6,9 +6,11 @@ import { fetchTrabalhoById, TrabalhoWithRelations } from '@/lib/queries';
 import { StatusBadge, PrioridadeBadge } from '@/components/StatusBadge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { ArrowLeft, MapPin, Clock, Package, Camera, User, Phone, Navigation, Trash2 } from 'lucide-react';
+import { Textarea } from '@/components/ui/textarea';
+import { ArrowLeft, MapPin, Clock, Package, Camera, User, Phone, Navigation, Trash2, Download, Share2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
+import { exportTrabalhoPDF } from '@/lib/pdfExport';
 import type { Tables } from '@/integrations/supabase/types';
 
 export default function TrabalhoDetalhes() {
@@ -23,6 +25,7 @@ export default function TrabalhoDetalhes() {
   const [novoPeso, setNovoPeso] = useState('');
   const [actionLoading, setActionLoading] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [observacaoTecnico, setObservacaoTecnico] = useState('');
 
   async function fetchData() {
     const [t, iRes, fRes] = await Promise.all([
@@ -31,6 +34,7 @@ export default function TrabalhoDetalhes() {
       supabase.from('fotos').select('*').eq('trabalho_id', id!),
     ]);
     setTrabalho(t);
+    setObservacaoTecnico(t?.observacoes_tecnico || '');
     setItens(iRes.data || []);
     setFotos(fRes.data || []);
     setLoading(false);
@@ -67,6 +71,10 @@ export default function TrabalhoDetalhes() {
       );
       lat = pos.coords.latitude; lng = pos.coords.longitude;
     } catch { /* ok */ }
+    // Save observation before finalizing
+    if (observacaoTecnico) {
+      await supabase.from('trabalhos').update({ observacoes_tecnico: observacaoTecnico }).eq('id', id!);
+    }
     const { error } = await supabase.from('trabalhos').update({
       status: 'CONCLUIDO' as const, end_at: new Date().toISOString(), end_lat: lat, end_lng: lng,
     }).eq('id', id!);
@@ -105,6 +113,21 @@ export default function TrabalhoDetalhes() {
 
   const isTecnico = role === 'tecnico';
   const isGestor = role === 'gestor';
+
+  const handleSaveObs = async () => {
+    const { error } = await supabase.from('trabalhos').update({ observacoes_tecnico: observacaoTecnico }).eq('id', id!);
+    if (error) { toast.error('Erro: ' + error.message); return; }
+    toast.success('Observação salva!');
+  };
+
+  const handleExportPDF = () => exportTrabalhoPDF(trabalho, itens);
+
+  const handleShareWhatsApp = () => {
+    const baseUrl = window.location.origin;
+    const avaliacaoUrl = `${baseUrl}/avaliacao?trabalho=${trabalho.id}`;
+    const msg = `Olá! Gostaríamos que você avaliasse o serviço "${trabalho.titulo}" realizado pela Finíssimo. Clique no link: ${avaliacaoUrl}`;
+    window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
+  };
 
   const handleDelete = async () => {
     setActionLoading(true);
@@ -242,6 +265,24 @@ export default function TrabalhoDetalhes() {
         )}
       </div>
 
+      {/* Observação do técnico */}
+      {isTecnico && trabalho.status === 'ANDAMENTO' && (
+        <div className="glass-card rounded-xl p-4 space-y-3">
+          <h3 className="text-sm font-semibold text-foreground">Observações do técnico</h3>
+          <Textarea placeholder="Adicione observações sobre o trabalho..." rows={3} value={observacaoTecnico} onChange={e => setObservacaoTecnico(e.target.value)} />
+          <Button size="sm" variant="outline" onClick={handleSaveObs}>Salvar observação</Button>
+        </div>
+      )}
+
+      {/* Observações exibidas quando já preenchidas */}
+      {trabalho.observacoes_tecnico && trabalho.status !== 'ANDAMENTO' && (
+        <div className="glass-card rounded-xl p-4 space-y-2">
+          <h3 className="text-sm font-semibold text-foreground">Observações do técnico</h3>
+          <p className="text-sm text-muted-foreground">{trabalho.observacoes_tecnico}</p>
+        </div>
+      )}
+
+      {/* Action buttons */}
       {isTecnico && (
         <div className="space-y-3 pt-2">
           {trabalho.status === 'PENDENTE' && (
@@ -249,6 +290,16 @@ export default function TrabalhoDetalhes() {
           )}
           {trabalho.status === 'ANDAMENTO' && (
             <Button onClick={handleFinalizar} className="w-full h-14 text-base font-semibold bg-success hover:bg-success/90 text-success-foreground" disabled={actionLoading}>✅ Finalizar e Gerar Relatório</Button>
+          )}
+        </div>
+      )}
+
+      {/* PDF & WhatsApp for concluded works */}
+      {trabalho.status === 'CONCLUIDO' && (
+        <div className="flex gap-2 pt-2">
+          <Button variant="outline" className="flex-1" onClick={handleExportPDF}><Download className="w-4 h-4 mr-2" /> Exportar PDF</Button>
+          {isTecnico && (
+            <Button variant="outline" className="flex-1" onClick={handleShareWhatsApp}><Share2 className="w-4 h-4 mr-2" /> Avaliação WhatsApp</Button>
           )}
         </div>
       )}

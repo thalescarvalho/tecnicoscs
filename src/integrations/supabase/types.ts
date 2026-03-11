@@ -49,6 +49,41 @@ export type Database = {
           },
         ]
       }
+      avaliacoes: {
+        Row: {
+          cliente_nome: string | null
+          comentario: string | null
+          created_at: string
+          id: string
+          nota: number
+          trabalho_id: string
+        }
+        Insert: {
+          cliente_nome?: string | null
+          comentario?: string | null
+          created_at?: string
+          id?: string
+          nota: number
+          trabalho_id: string
+        }
+        Update: {
+          cliente_nome?: string | null
+          comentario?: string | null
+          created_at?: string
+          id?: string
+          nota?: number
+          trabalho_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "avaliacoes_trabalho_id_fkey"
+            columns: ["trabalho_id"]
+            isOneToOne: false
+            referencedRelation: "trabalhos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       clientes: {
         Row: {
           created_at: string
