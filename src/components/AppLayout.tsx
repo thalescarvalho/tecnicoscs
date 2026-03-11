@@ -13,6 +13,8 @@ const gestorLinks = [
   { to: '/clientes', label: 'Clientes', icon: Store },
   { to: '/usuarios', label: 'Usuários', icon: Users },
   { to: '/relatorios', label: 'Relatórios', icon: FileText },
+  { to: '/producao', label: 'Produção', icon: BarChart3 },
+  { to: '/avaliacoes', label: 'Avaliações', icon: Star },
 ];
 
 const tecnicoLinks = [
