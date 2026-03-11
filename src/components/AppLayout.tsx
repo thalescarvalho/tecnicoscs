@@ -24,6 +24,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
   const navigate = useNavigate();
   const location = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
+  const { isInstallable, install } = usePWAInstall();
 
   const links = role === 'gestor' ? gestorLinks : tecnicoLinks;
   const roleLabel = role === 'gestor' ? '👔 Gestor' : '🔧 Técnico';
