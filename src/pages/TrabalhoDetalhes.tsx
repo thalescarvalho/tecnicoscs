@@ -34,6 +34,7 @@ export default function TrabalhoDetalhes() {
       supabase.from('fotos').select('*').eq('trabalho_id', id!),
     ]);
     setTrabalho(t);
+    setObservacaoTecnico(t?.observacoes_tecnico || '');
     setItens(iRes.data || []);
     setFotos(fRes.data || []);
     setLoading(false);
