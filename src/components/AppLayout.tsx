@@ -1,8 +1,9 @@
 import { ReactNode, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
-import { LayoutDashboard, ClipboardList, UserPlus, FileText, Wrench, Menu, X, LogOut, Users, Store } from 'lucide-react';
+import { LayoutDashboard, ClipboardList, UserPlus, FileText, Wrench, Menu, X, LogOut, Users, Store, Download } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { usePWAInstall } from '@/hooks/usePWAInstall';
 import logo from '@/assets/logo.png';
 
 const gestorLinks = [
@@ -23,6 +24,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
   const navigate = useNavigate();
   const location = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
+  const { isInstallable, install } = usePWAInstall();
 
   const links = role === 'gestor' ? gestorLinks : tecnicoLinks;
   const roleLabel = role === 'gestor' ? '👔 Gestor' : '🔧 Técnico';
@@ -47,6 +49,11 @@ export function AppLayout({ children }: { children: ReactNode }) {
           <div className="flex items-center gap-2">
             <span className="text-xs text-white/90 hidden sm:block">{profile?.nome}</span>
             <span className="status-badge bg-white/20 text-white border border-white/30 text-[10px]">{roleLabel}</span>
+            {isInstallable && (
+              <button onClick={install} className="p-1.5 rounded-lg hover:bg-white/20 transition-colors" title="Instalar app">
+                <Download className="w-4 h-4 text-white" />
+              </button>
+            )}
             <button onClick={handleSignOut} className="p-1.5 rounded-lg hover:bg-white/20 transition-colors">
               <LogOut className="w-4 h-4 text-white" />
             </button>

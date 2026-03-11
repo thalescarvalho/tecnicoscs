@@ -1,0 +1,1 @@
+CREATE POLICY "Gestores can delete trabalhos" ON public.trabalhos FOR DELETE TO authenticated USING (has_role(auth.uid(), 'gestor'::app_role));
