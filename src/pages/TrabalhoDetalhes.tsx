@@ -105,7 +105,6 @@ export default function TrabalhoDetalhes() {
 
   const isTecnico = role === 'tecnico';
   const isGestor = role === 'gestor';
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   const handleDelete = async () => {
     setActionLoading(true);
