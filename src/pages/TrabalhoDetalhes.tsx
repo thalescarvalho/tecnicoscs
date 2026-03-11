@@ -71,6 +71,10 @@ export default function TrabalhoDetalhes() {
       );
       lat = pos.coords.latitude; lng = pos.coords.longitude;
     } catch { /* ok */ }
+    // Save observation before finalizing
+    if (observacaoTecnico) {
+      await supabase.from('trabalhos').update({ observacoes_tecnico: observacaoTecnico }).eq('id', id!);
+    }
     const { error } = await supabase.from('trabalhos').update({
       status: 'CONCLUIDO' as const, end_at: new Date().toISOString(), end_lat: lat, end_lng: lng,
     }).eq('id', id!);
