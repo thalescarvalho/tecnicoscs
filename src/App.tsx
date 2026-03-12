@@ -44,7 +44,9 @@ function RoleRoute({ children, allowedRole }: { children: React.ReactNode; allow
   const { role, loading } = useAuth();
   if (loading) return <div className="flex justify-center items-center min-h-screen"><div className="animate-spin w-8 h-8 border-2 border-primary border-t-transparent rounded-full" /></div>;
   if (!role) return <NoRolePage />;
-  if (role !== allowedRole) return <Navigate to={role === 'gestor' ? '/dashboard' : '/meus-trabalhos'} replace />;
+  // Admin has access to all gestor routes
+  const effectiveRole = role === 'admin' ? 'gestor' : role;
+  if (effectiveRole !== allowedRole) return <Navigate to={effectiveRole === 'gestor' ? '/dashboard' : '/meus-trabalhos'} replace />;
   return <>{children}</>;
 }
 

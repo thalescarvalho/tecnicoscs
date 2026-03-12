@@ -28,8 +28,8 @@ export function AppLayout({ children }: { children: ReactNode }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const { isInstallable, install } = usePWAInstall();
 
-  const links = role === 'gestor' ? gestorLinks : tecnicoLinks;
-  const roleLabel = role === 'gestor' ? '👔 Gestor' : '🔧 Técnico';
+  const links = (role === 'gestor' || role === 'admin') ? gestorLinks : tecnicoLinks;
+  const roleLabel = role === 'admin' ? '👑 Admin' : role === 'gestor' ? '👔 Gestor' : '🔧 Técnico';
 
   const handleSignOut = async () => {
     await signOut();
