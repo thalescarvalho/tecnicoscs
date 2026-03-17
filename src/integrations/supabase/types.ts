@@ -56,6 +56,7 @@ export type Database = {
           created_at: string
           id: string
           nota: number
+          tecnico_id: string | null
           trabalho_id: string
         }
         Insert: {
@@ -64,6 +65,7 @@ export type Database = {
           created_at?: string
           id?: string
           nota: number
+          tecnico_id?: string | null
           trabalho_id: string
         }
         Update: {
@@ -72,6 +74,7 @@ export type Database = {
           created_at?: string
           id?: string
           nota?: number
+          tecnico_id?: string | null
           trabalho_id?: string
         }
         Relationships: [
