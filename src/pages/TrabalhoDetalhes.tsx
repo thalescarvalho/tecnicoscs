@@ -192,7 +192,7 @@ export default function TrabalhoDetalhes() {
               <div>
                 <p className="text-xs font-medium">Iniciado</p>
                 <p className="text-xs text-muted-foreground">{new Date(trabalho.start_at).toLocaleString('pt-BR')}</p>
-                {trabalho.start_lat && (
+                {isGestor && trabalho.start_lat && (
                   <a href={`https://www.google.com/maps?q=${trabalho.start_lat},${trabalho.start_lng}`} target="_blank" rel="noopener noreferrer" className="text-xs text-primary flex items-center gap-1 mt-0.5">
                     <Navigation className="w-3 h-3" /> Ver no mapa
                   </a>
@@ -206,7 +206,7 @@ export default function TrabalhoDetalhes() {
               <div>
                 <p className="text-xs font-medium">Finalizado</p>
                 <p className="text-xs text-muted-foreground">{new Date(trabalho.end_at).toLocaleString('pt-BR')}</p>
-                {trabalho.end_lat && (
+                {isGestor && trabalho.end_lat && (
                   <a href={`https://www.google.com/maps?q=${trabalho.end_lat},${trabalho.end_lng}`} target="_blank" rel="noopener noreferrer" className="text-xs text-primary flex items-center gap-1 mt-0.5">
                     <Navigation className="w-3 h-3" /> Ver no mapa (fim)
                   </a>
