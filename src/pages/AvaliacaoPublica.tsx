@@ -28,11 +28,14 @@ export default function AvaliacaoPublica() {
   const handleSubmit = async () => {
     if (nota === 0) { toast.error('Selecione uma nota de 1 a 5'); return; }
     setLoading(true);
+    // Fetch tecnico_id from the trabalho
+    const { data: trabalho } = await supabase.from('trabalhos').select('tecnico_id').eq('id', trabalhoId).maybeSingle();
     const { error } = await supabase.from('avaliacoes').insert({
       trabalho_id: trabalhoId,
       nota,
       comentario: comentario || null,
       cliente_nome: clienteNome || null,
+      tecnico_id: trabalho?.tecnico_id || null,
     });
     setLoading(false);
     if (error) { toast.error('Erro ao enviar avaliação'); return; }
