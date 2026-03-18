@@ -7,6 +7,7 @@ type TrabalhoStatus = Enums<'trabalho_status'>;
 
 const tabs: { label: string; value: TrabalhoStatus | 'TODOS' }[] = [
   { label: 'Todos', value: 'TODOS' },
+  { label: 'Aguardando', value: 'AGUARDANDO_APROVACAO' },
   { label: 'Pendentes', value: 'PENDENTE' },
   { label: 'Andamento', value: 'ANDAMENTO' },
   { label: 'Concluídos', value: 'CONCLUIDO' },

@@ -7,7 +7,8 @@ import { StatusBadge, PrioridadeBadge } from '@/components/StatusBadge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { ArrowLeft, MapPin, Clock, Package, Camera, User, Phone, Navigation, Trash2, Download, Share2, FileText } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { ArrowLeft, MapPin, Clock, Package, Camera, User, Phone, Navigation, Trash2, Download, Share2, FileText, CheckCircle2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
 import { exportTrabalhoPDF, exportVendedorPDF } from '@/lib/pdfExport';
@@ -23,9 +24,17 @@ export default function TrabalhoDetalhes() {
   const [loading, setLoading] = useState(true);
   const [novoProduto, setNovoProduto] = useState('');
   const [novoPeso, setNovoPeso] = useState('');
+  const [novaQtd, setNovaQtd] = useState('');
   const [actionLoading, setActionLoading] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [observacaoTecnico, setObservacaoTecnico] = useState('');
+
+  // Approval state
+  const [tecnicos, setTecnicos] = useState<(Tables<'profiles'> & { user_id: string })[]>([]);
+  const [selectedTecnico, setSelectedTecnico] = useState('');
+
+  // Weight editing
+  const [editingWeights, setEditingWeights] = useState<Record<string, string>>({});
 
   async function fetchData() {
     const [t, iRes, fRes] = await Promise.all([
@@ -41,6 +50,38 @@ export default function TrabalhoDetalhes() {
   }
 
   useEffect(() => { fetchData(); }, [id]);
+
+  // Fetch tecnicos for approval
+  useEffect(() => {
+    if (role === 'gestor' || role === 'admin') {
+      async function fetchTecnicos() {
+        const { data: roles } = await supabase.from('user_roles').select('user_id').eq('role', 'tecnico');
+        if (roles && roles.length > 0) {
+          const { data: profiles } = await supabase.from('profiles').select('*').in('user_id', roles.map(r => r.user_id)).eq('ativo', true);
+          setTecnicos((profiles || []) as any);
+        }
+      }
+      fetchTecnicos();
+    }
+  }, [role]);
+
+  const isTecnico = role === 'tecnico';
+  const isGestor = role === 'gestor' || role === 'admin';
+  const isVendedor = role === 'vendedor';
+
+  const handleAprovar = async () => {
+    if (!selectedTecnico) { toast.error('Selecione um técnico'); return; }
+    setActionLoading(true);
+    const { error } = await supabase.from('trabalhos').update({
+      status: 'PENDENTE' as any,
+      tecnico_id: selectedTecnico,
+      gestor_id: user!.id,
+    }).eq('id', id!);
+    setActionLoading(false);
+    if (error) { toast.error('Erro: ' + error.message); return; }
+    toast.success('Trabalho aprovado e atribuído!');
+    fetchData();
+  };
 
   const handleIniciar = async () => {
     setActionLoading(true);
@@ -62,6 +103,9 @@ export default function TrabalhoDetalhes() {
   };
 
   const handleFinalizar = async () => {
+    // Check all items have weight
+    const itensWithoutWeight = itens.filter(i => !i.peso_valor || i.peso_valor === 0);
+    if (itensWithoutWeight.length > 0) { toast.error('Preencha o peso de todos os itens antes de finalizar.'); return; }
     if (itens.length === 0) { toast.error('Adicione pelo menos 1 item produzido.'); return; }
     setActionLoading(true);
     let lat: number | null = null, lng: number | null = null;
@@ -71,7 +115,6 @@ export default function TrabalhoDetalhes() {
       );
       lat = pos.coords.latitude; lng = pos.coords.longitude;
     } catch { /* ok */ }
-    // Save observation before finalizing
     if (observacaoTecnico) {
       await supabase.from('trabalhos').update({ observacoes_tecnico: observacaoTecnico }).eq('id', id!);
     }
@@ -85,12 +128,38 @@ export default function TrabalhoDetalhes() {
   };
 
   const addItem = async () => {
-    if (!novoProduto || !novoPeso) return;
+    if (!novoProduto) return;
+    const peso = novoPeso ? parseFloat(novoPeso) : 0;
+    const quantidade = novaQtd ? parseInt(novaQtd) : null;
     const { error } = await supabase.from('itens_produzidos').insert({
-      trabalho_id: id!, nome_produto: novoProduto, peso_valor: parseFloat(novoPeso), peso_unidade: 'kg',
+      trabalho_id: id!, nome_produto: novoProduto, peso_valor: peso, peso_unidade: 'kg',
+      ...(quantidade ? { quantidade } : {}),
     });
     if (error) { toast.error('Erro: ' + error.message); return; }
-    setNovoProduto(''); setNovoPeso('');
+    setNovoProduto(''); setNovoPeso(''); setNovaQtd('');
+    const { data } = await supabase.from('itens_produzidos').select('*').eq('trabalho_id', id!);
+    setItens(data || []);
+  };
+
+  const addItemVendedor = async () => {
+    if (!novoProduto) return;
+    const quantidade = novaQtd ? parseInt(novaQtd) : 1;
+    const { error } = await supabase.from('itens_produzidos').insert({
+      trabalho_id: id!, nome_produto: novoProduto, peso_valor: 0, peso_unidade: 'kg', quantidade,
+    });
+    if (error) { toast.error('Erro: ' + error.message); return; }
+    setNovoProduto(''); setNovaQtd('');
+    const { data } = await supabase.from('itens_produzidos').select('*').eq('trabalho_id', id!);
+    setItens(data || []);
+  };
+
+  const updateItemWeight = async (itemId: string) => {
+    const peso = parseFloat(editingWeights[itemId] || '0');
+    if (!peso) { toast.error('Informe um peso válido'); return; }
+    const { error } = await supabase.from('itens_produzidos').update({ peso_valor: peso }).eq('id', itemId);
+    if (error) { toast.error('Erro: ' + error.message); return; }
+    toast.success('Peso atualizado!');
+    setEditingWeights(prev => { const n = { ...prev }; delete n[itemId]; return n; });
     const { data } = await supabase.from('itens_produzidos').select('*').eq('trabalho_id', id!);
     setItens(data || []);
   };
@@ -111,9 +180,6 @@ export default function TrabalhoDetalhes() {
   if (loading) return <div className="flex justify-center py-12"><div className="animate-spin w-8 h-8 border-2 border-primary border-t-transparent rounded-full" /></div>;
   if (!trabalho) return <div className="text-center py-12"><p className="text-muted-foreground">Trabalho não encontrado</p><Button variant="outline" onClick={() => navigate(-1)} className="mt-4">Voltar</Button></div>;
 
-  const isTecnico = role === 'tecnico';
-  const isGestor = role === 'gestor';
-
   const handleSaveObs = async () => {
     const { error } = await supabase.from('trabalhos').update({ observacoes_tecnico: observacaoTecnico }).eq('id', id!);
     if (error) { toast.error('Erro: ' + error.message); return; }
@@ -125,7 +191,6 @@ export default function TrabalhoDetalhes() {
       exportTrabalhoPDF(trabalho, itens);
       toast.success('PDF gerado!');
     } catch (e: any) {
-      console.error('Erro ao gerar PDF:', e);
       toast.error('Erro ao gerar PDF: ' + e.message);
     }
   };
@@ -136,7 +201,6 @@ export default function TrabalhoDetalhes() {
       await exportVendedorPDF(trabalho, itens, fotos);
       toast.success('PDF do vendedor gerado!');
     } catch (e: any) {
-      console.error('Erro ao gerar PDF vendedor:', e);
       toast.error('Erro ao gerar PDF: ' + e.message);
     }
   };
@@ -150,7 +214,6 @@ export default function TrabalhoDetalhes() {
 
   const handleDelete = async () => {
     setActionLoading(true);
-    // Delete related records first
     await Promise.all([
       supabase.from('itens_produzidos').delete().eq('trabalho_id', id!),
       supabase.from('fotos').delete().eq('trabalho_id', id!),
@@ -181,12 +244,31 @@ export default function TrabalhoDetalhes() {
       {showDeleteConfirm && (
         <div className="glass-card rounded-xl p-4 border border-destructive/30 bg-destructive/5 space-y-3">
           <p className="text-sm font-semibold text-destructive">Tem certeza que deseja excluir este trabalho?</p>
-          <p className="text-xs text-muted-foreground">Esta ação não pode ser desfeita. Todos os itens, fotos e registros associados serão removidos.</p>
+          <p className="text-xs text-muted-foreground">Esta ação não pode ser desfeita.</p>
           <div className="flex gap-2">
             <Button variant="destructive" size="sm" onClick={handleDelete} disabled={actionLoading}>Excluir</Button>
             <Button variant="outline" size="sm" onClick={() => setShowDeleteConfirm(false)}>Cancelar</Button>
           </div>
         </div>
+      )}
+
+      {/* Approval section for gestor */}
+      {isGestor && trabalho.status === 'AGUARDANDO_APROVACAO' && (
+        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="glass-card rounded-xl p-4 space-y-3 border border-violet-500/30 bg-violet-500/5">
+          <h3 className="text-sm font-semibold text-foreground flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-violet-500" /> Aprovar trabalho</h3>
+          <p className="text-xs text-muted-foreground">Este trabalho foi agendado por um vendedor e aguarda sua aprovação. Selecione o técnico responsável.</p>
+          <Select value={selectedTecnico} onValueChange={setSelectedTecnico}>
+            <SelectTrigger><SelectValue placeholder="Selecione o técnico" /></SelectTrigger>
+            <SelectContent>
+              {tecnicos.length === 0 ? (
+                <SelectItem value="_none" disabled>Nenhum técnico disponível</SelectItem>
+              ) : tecnicos.map(t => <SelectItem key={t.user_id} value={t.user_id}>{t.nome}</SelectItem>)}
+            </SelectContent>
+          </Select>
+          <Button onClick={handleAprovar} disabled={actionLoading || !selectedTecnico} className="w-full">
+            ✅ Aprovar e Atribuir
+          </Button>
+        </motion.div>
       )}
 
       <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="glass-card rounded-xl p-4 space-y-2">
@@ -200,6 +282,9 @@ export default function TrabalhoDetalhes() {
         <h3 className="text-sm font-semibold text-foreground">Descrição</h3>
         <p className="text-sm text-muted-foreground">{trabalho.descricao}</p>
         <p className="text-xs text-muted-foreground">Tipo: {trabalho.tipo_servico} · Previsto: {new Date(trabalho.data_prevista).toLocaleDateString('pt-BR')}</p>
+        {trabalho.tecnico_profile && (
+          <p className="text-xs text-muted-foreground">Técnico: {trabalho.tecnico_profile.nome}</p>
+        )}
       </div>
 
       {(trabalho.start_at || trabalho.end_at) && (
@@ -241,27 +326,61 @@ export default function TrabalhoDetalhes() {
         </div>
       )}
 
+      {/* Items section */}
       <div className="glass-card rounded-xl p-4 space-y-3">
-        <h3 className="text-sm font-semibold text-foreground flex items-center gap-2"><Package className="w-4 h-4 text-primary" /> Itens produzidos ({itens.length})</h3>
+        <h3 className="text-sm font-semibold text-foreground flex items-center gap-2"><Package className="w-4 h-4 text-primary" /> Itens ({itens.length})</h3>
         {itens.length > 0 ? (
           <div className="space-y-2">
             {itens.map(item => (
-              <div key={item.id} className="flex justify-between items-center py-2 border-b border-border last:border-0">
-                <span className="text-sm">{item.nome_produto}</span>
-                <span className="text-sm font-medium text-primary">{item.peso_valor} {item.peso_unidade}</span>
+              <div key={item.id} className="flex justify-between items-center py-2 border-b border-border last:border-0 gap-2">
+                <div className="min-w-0">
+                  <span className="text-sm">{item.nome_produto}</span>
+                  {item.quantidade && <span className="text-xs text-muted-foreground ml-1">({item.quantidade}x)</span>}
+                </div>
+                {/* Tecnico can edit weight of items with 0 weight */}
+                {isTecnico && trabalho.status === 'ANDAMENTO' && (!item.peso_valor || item.peso_valor === 0) ? (
+                  <div className="flex items-center gap-1">
+                    <Input
+                      placeholder="Peso"
+                      value={editingWeights[item.id] || ''}
+                      onChange={e => setEditingWeights(prev => ({ ...prev, [item.id]: e.target.value }))}
+                      className="text-sm w-20 h-8"
+                      type="number"
+                      step="0.1"
+                    />
+                    <span className="text-xs text-muted-foreground">kg</span>
+                    <Button size="sm" variant="outline" className="h-8 px-2" onClick={() => updateItemWeight(item.id)}>✓</Button>
+                  </div>
+                ) : (
+                  <span className={`text-sm font-medium ${item.peso_valor && item.peso_valor > 0 ? 'text-primary' : 'text-muted-foreground'}`}>
+                    {item.peso_valor && item.peso_valor > 0 ? `${item.peso_valor} ${item.peso_unidade}` : 'peso pendente'}
+                  </span>
+                )}
               </div>
             ))}
           </div>
         ) : <p className="text-xs text-muted-foreground">Nenhum item registrado</p>}
+
+        {/* Tecnico add items (with weight) */}
         {isTecnico && trabalho.status === 'ANDAMENTO' && (
           <div className="flex gap-2 pt-2 border-t border-border">
             <Input placeholder="Produto" value={novoProduto} onChange={e => setNovoProduto(e.target.value)} className="text-sm" />
             <Input placeholder="Peso (kg)" value={novoPeso} onChange={e => setNovoPeso(e.target.value)} className="text-sm w-24" type="number" step="0.1" />
-            <Button type="button" size="sm" onClick={addItem} disabled={!novoProduto || !novoPeso}>+</Button>
+            <Button type="button" size="sm" onClick={addItem} disabled={!novoProduto}>+</Button>
+          </div>
+        )}
+
+        {/* Vendedor add items (without weight) */}
+        {isVendedor && trabalho.status === 'AGUARDANDO_APROVACAO' && (
+          <div className="flex gap-2 pt-2 border-t border-border">
+            <Input placeholder="Produto" value={novoProduto} onChange={e => setNovoProduto(e.target.value)} className="text-sm" />
+            <Input placeholder="Qtd" value={novaQtd} onChange={e => setNovaQtd(e.target.value)} className="text-sm w-20" type="number" min="1" />
+            <Button type="button" size="sm" onClick={addItemVendedor} disabled={!novoProduto}>+</Button>
           </div>
         )}
       </div>
 
+      {/* Photos */}
       <div className="glass-card rounded-xl p-4 space-y-3">
         <h3 className="text-sm font-semibold text-foreground flex items-center gap-2"><Camera className="w-4 h-4 text-primary" /> Fotos ({fotos.length})</h3>
         {fotos.length > 0 ? (
@@ -293,7 +412,6 @@ export default function TrabalhoDetalhes() {
         </div>
       )}
 
-      {/* Observações exibidas quando já preenchidas */}
       {trabalho.observacoes_tecnico && trabalho.status !== 'ANDAMENTO' && (
         <div className="glass-card rounded-xl p-4 space-y-2">
           <h3 className="text-sm font-semibold text-foreground">Observações do técnico</h3>
@@ -301,7 +419,7 @@ export default function TrabalhoDetalhes() {
         </div>
       )}
 
-      {/* Action buttons */}
+      {/* Action buttons - Tecnico */}
       {isTecnico && (
         <div className="space-y-3 pt-2">
           {trabalho.status === 'PENDENTE' && (
@@ -322,7 +440,7 @@ export default function TrabalhoDetalhes() {
               <Button variant="outline" className="flex-1" onClick={handleShareWhatsApp}><Share2 className="w-4 h-4 mr-2" /> Avaliação WhatsApp</Button>
             )}
           </div>
-          {isTecnico && (
+          {(isTecnico || isVendedor) && (
             <Button variant="outline" className="w-full" onClick={handleVendedorPDF}>
               <FileText className="w-4 h-4 mr-2" /> PDF para Vendedor
             </Button>
