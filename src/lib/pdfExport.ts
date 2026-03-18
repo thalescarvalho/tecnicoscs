@@ -1,13 +1,7 @@
 import jsPDF from 'jspdf';
-import 'jspdf-autotable';
+import autoTable from 'jspdf-autotable';
 import type { TrabalhoWithRelations } from './queries';
 import type { Tables } from '@/integrations/supabase/types';
-
-declare module 'jspdf' {
-  interface jsPDF {
-    autoTable: (options: any) => jsPDF;
-  }
-}
 
 export function exportTrabalhoPDF(
   trabalho: TrabalhoWithRelations,
