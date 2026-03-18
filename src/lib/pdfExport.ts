@@ -1,13 +1,7 @@
 import jsPDF from 'jspdf';
-import 'jspdf-autotable';
+import autoTable from 'jspdf-autotable';
 import type { TrabalhoWithRelations } from './queries';
 import type { Tables } from '@/integrations/supabase/types';
-
-declare module 'jspdf' {
-  interface jsPDF {
-    autoTable: (options: any) => jsPDF;
-  }
-}
 
 export function exportTrabalhoPDF(
   trabalho: TrabalhoWithRelations,
@@ -112,7 +106,7 @@ export function exportTrabalhoPDF(
 
     const totalPeso = itens.reduce((s, i) => s + Number(i.peso_valor), 0);
 
-    doc.autoTable({
+    autoTable(doc, {
       startY: y,
       head: [['Produto', 'Peso', 'Unidade', 'Qtd']],
       body: itens.map(i => [i.nome_produto, i.peso_valor, i.peso_unidade, i.quantidade || 1]),
@@ -176,7 +170,7 @@ export async function exportVendedorPDF(
 
     const totalPeso = itens.reduce((s, i) => s + Number(i.peso_valor), 0);
 
-    doc.autoTable({
+    autoTable(doc, {
       startY: y,
       head: [['Produto', 'Peso', 'Unidade', 'Qtd']],
       body: itens.map(i => [i.nome_produto, i.peso_valor, i.peso_unidade, i.quantidade || 1]),
