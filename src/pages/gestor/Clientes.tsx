@@ -82,6 +82,18 @@ export default function Clientes() {
     fetchClientes();
   };
 
+  const handleDelete = async () => {
+    if (!deleteTarget) return;
+    const { error } = await supabase.from('clientes').delete().eq('id', deleteTarget.id);
+    if (error) {
+      toast.error(error.message.includes('violates foreign key') ? 'Este cliente possui trabalhos vinculados e não pode ser excluído.' : 'Erro: ' + error.message);
+    } else {
+      toast.success('Cliente excluído!');
+      fetchClientes();
+    }
+    setDeleteTarget(null);
+  };
+
   if (loading) return <div className="flex justify-center py-12"><div className="animate-spin w-8 h-8 border-2 border-primary border-t-transparent rounded-full" /></div>;
 
   return (
