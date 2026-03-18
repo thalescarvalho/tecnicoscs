@@ -13,6 +13,8 @@ import { useAuth } from '@/hooks/useAuth';
 type Cliente = Tables<'clientes'> & { vendedor?: string | null };
 
 export default function Clientes() {
+  const { role } = useAuth();
+  const canDelete = role === 'gestor' || role === 'admin';
   const [clientes, setClientes] = useState<Cliente[]>([]);
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
