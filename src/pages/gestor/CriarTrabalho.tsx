@@ -64,7 +64,7 @@ export default function CriarTrabalho() {
     } else {
       const { data: newClient, error: clientError } = await supabase
         .from('clientes')
-        .insert({ nome: clienteNome, endereco: clienteEndereco, telefone: '-' })
+        .insert({ nome: clienteNome, endereco: clienteEndereco, telefone: '-', vendedor: vendedor || null })
         .select('id')
         .single();
       if (clientError || !newClient) {
