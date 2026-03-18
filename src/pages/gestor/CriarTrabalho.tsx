@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -27,9 +27,21 @@ export default function CriarTrabalho() {
   const [observacoes, setObservacoes] = useState('');
   const [vendedor, setVendedor] = useState('');
 
+  // Autocomplete state
+  const [clientes, setClientes] = useState<Tables<'clientes'>[]>([]);
+  const [filteredClientes, setFilteredClientes] = useState<Tables<'clientes'>[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [selectedClienteId, setSelectedClienteId] = useState<string | null>(null);
+  const suggestionsRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+
   useEffect(() => {
     async function fetchData() {
-      const rolesRes = await supabase.from('user_roles').select('user_id').eq('role', 'tecnico');
+      const [rolesRes, clientesRes] = await Promise.all([
+        supabase.from('user_roles').select('user_id').eq('role', 'tecnico'),
+        supabase.from('clientes').select('*').order('nome'),
+      ]);
+
       if (rolesRes.data && rolesRes.data.length > 0) {
         const tecnicoIds = rolesRes.data.map(r => r.user_id);
         const { data: profiles } = await supabase
@@ -39,9 +51,45 @@ export default function CriarTrabalho() {
           .eq('ativo', true);
         setTecnicos((profiles || []) as any);
       }
+
+      setClientes(clientesRes.data || []);
     }
     fetchData();
   }, []);
+
+  // Close suggestions on outside click
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (suggestionsRef.current && !suggestionsRef.current.contains(e.target as Node) &&
+          inputRef.current && !inputRef.current.contains(e.target as Node)) {
+        setShowSuggestions(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const handleClienteNomeChange = (value: string) => {
+    setClienteNome(value);
+    setSelectedClienteId(null);
+    if (value.trim().length >= 2) {
+      const filtered = clientes.filter(c =>
+        c.nome.toLowerCase().includes(value.toLowerCase())
+      );
+      setFilteredClientes(filtered);
+      setShowSuggestions(filtered.length > 0);
+    } else {
+      setShowSuggestions(false);
+    }
+  };
+
+  const selectCliente = (cliente: Tables<'clientes'>) => {
+    setClienteNome(cliente.nome);
+    setClienteEndereco(cliente.endereco);
+    setVendedor(cliente.vendedor || '');
+    setSelectedClienteId(cliente.id);
+    setShowSuggestions(false);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -51,28 +99,33 @@ export default function CriarTrabalho() {
     }
     setLoading(true);
 
-    // Create or find client
-    const { data: existingClients } = await supabase
-      .from('clientes')
-      .select('id')
-      .eq('nome', clienteNome)
-      .limit(1);
-
     let clienteId: string;
-    if (existingClients && existingClients.length > 0) {
-      clienteId = existingClients[0].id;
+
+    if (selectedClienteId) {
+      clienteId = selectedClienteId;
     } else {
-      const { data: newClient, error: clientError } = await supabase
+      // Create or find client
+      const { data: existingClients } = await supabase
         .from('clientes')
-        .insert({ nome: clienteNome, endereco: clienteEndereco, telefone: '-', vendedor: vendedor || null })
         .select('id')
-        .single();
-      if (clientError || !newClient) {
-        toast.error('Erro ao criar cliente: ' + (clientError?.message || ''));
-        setLoading(false);
-        return;
+        .eq('nome', clienteNome)
+        .limit(1);
+
+      if (existingClients && existingClients.length > 0) {
+        clienteId = existingClients[0].id;
+      } else {
+        const { data: newClient, error: clientError } = await supabase
+          .from('clientes')
+          .insert({ nome: clienteNome, endereco: clienteEndereco, telefone: '-', vendedor: vendedor || null })
+          .select('id')
+          .single();
+        if (clientError || !newClient) {
+          toast.error('Erro ao criar cliente: ' + (clientError?.message || ''));
+          setLoading(false);
+          return;
+        }
+        clienteId = newClient.id;
       }
-      clienteId = newClient.id;
     }
 
     const { error } = await supabase.from('trabalhos').insert({
@@ -93,9 +146,39 @@ export default function CriarTrabalho() {
     <div className="space-y-6">
       <h1 className="text-2xl font-heading font-bold text-foreground">Novo Trabalho</h1>
       <form onSubmit={handleSubmit} className="space-y-5">
-        <div className="space-y-2">
+        <div className="space-y-2 relative">
           <label className="text-sm font-medium text-foreground">Nome do cliente *</label>
-          <Input placeholder="Ex: Sorveteria do João" value={clienteNome} onChange={e => setClienteNome(e.target.value)} required />
+          <Input
+            ref={inputRef}
+            placeholder="Ex: Sorveteria do João"
+            value={clienteNome}
+            onChange={e => handleClienteNomeChange(e.target.value)}
+            onFocus={() => {
+              if (clienteNome.trim().length >= 2 && filteredClientes.length > 0 && !selectedClienteId) {
+                setShowSuggestions(true);
+              }
+            }}
+            autoComplete="off"
+            required
+          />
+          {showSuggestions && (
+            <div
+              ref={suggestionsRef}
+              className="absolute z-50 w-full mt-1 bg-popover border border-border rounded-lg shadow-lg max-h-48 overflow-y-auto"
+            >
+              {filteredClientes.map(c => (
+                <button
+                  key={c.id}
+                  type="button"
+                  className="w-full text-left px-3 py-2.5 hover:bg-accent transition-colors border-b border-border/50 last:border-0"
+                  onClick={() => selectCliente(c)}
+                >
+                  <p className="text-sm font-medium text-foreground">{c.nome}</p>
+                  <p className="text-xs text-muted-foreground">{c.endereco}</p>
+                </button>
+              ))}
+            </div>
+          )}
         </div>
         <div className="space-y-2">
           <label className="text-sm font-medium text-foreground">Endereço do cliente *</label>
