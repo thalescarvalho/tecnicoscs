@@ -159,6 +159,16 @@ export default function Clientes() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="font-heading">{editingId ? 'Editar Cliente' : 'Novo Cliente'}</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-foreground">Nome Fantasia *</label>
+              <Input placeholder="Ex: Padaria Bom Pão" value={nome} onChange={e => setNome(e.target.value)} required maxLength={100} />
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium text-foreground">Endereço *</label>
