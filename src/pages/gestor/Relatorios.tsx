@@ -6,7 +6,7 @@ import { StatusBadge } from '@/components/StatusBadge';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { exportTrabalhoPDF } from '@/lib/pdfExport';
-import type { Tables } from '@/integrations/supabase/types';
+import { toast } from 'sonner';
 
 export default function Relatorios() {
   const navigate = useNavigate();
