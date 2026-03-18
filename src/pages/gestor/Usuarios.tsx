@@ -146,6 +146,7 @@ export default function Usuarios() {
                   <SelectItem value="none">Sem papel</SelectItem>
                   {isAdmin && <SelectItem value="admin">Admin</SelectItem>}
                   <SelectItem value="gestor">Gestor</SelectItem>
+                  <SelectItem value="vendedor">Vendedor</SelectItem>
                   <SelectItem value="tecnico">Técnico</SelectItem>
                 </SelectContent>
               </Select>
