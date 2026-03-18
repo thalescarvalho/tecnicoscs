@@ -10,7 +10,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { ArrowLeft, MapPin, Clock, Package, Camera, User, Phone, Navigation, Trash2, Download, Share2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
-import { exportTrabalhoPDF } from '@/lib/pdfExport';
+import { exportTrabalhoPDF, exportVendedorPDF } from '@/lib/pdfExport';
 import type { Tables } from '@/integrations/supabase/types';
 
 export default function TrabalhoDetalhes() {
