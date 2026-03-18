@@ -15,14 +15,17 @@ export async function fetchTrabalhosWithRelations(filters?: { status?: string; t
   const { data: trabalhos } = await query;
   if (!trabalhos || trabalhos.length === 0) return [];
 
-  // Fetch tecnico profiles separately
-  const tecnicoIds = [...new Set(trabalhos.map(t => t.tecnico_id))];
-  const { data: profiles } = await supabase.from('profiles').select('*').in('user_id', tecnicoIds);
-  const profileMap = new Map((profiles || []).map(p => [p.user_id, p]));
+  // Fetch tecnico profiles separately (handle nullable tecnico_id)
+  const tecnicoIds = [...new Set(trabalhos.map(t => t.tecnico_id).filter(Boolean))] as string[];
+  let profileMap = new Map<string, Tables<'profiles'>>();
+  if (tecnicoIds.length > 0) {
+    const { data: profiles } = await supabase.from('profiles').select('*').in('user_id', tecnicoIds);
+    profileMap = new Map((profiles || []).map(p => [p.user_id, p]));
+  }
 
   return trabalhos.map(t => ({
     ...t,
-    tecnico_profile: profileMap.get(t.tecnico_id) || null,
+    tecnico_profile: t.tecnico_id ? profileMap.get(t.tecnico_id) || null : null,
   }));
 }
 
@@ -30,6 +33,10 @@ export async function fetchTrabalhoById(id: string): Promise<TrabalhoWithRelatio
   const { data } = await supabase.from('trabalhos').select('*, clientes(*)').eq('id', id).single();
   if (!data) return null;
 
-  const { data: profile } = await supabase.from('profiles').select('*').eq('user_id', data.tecnico_id).single();
-  return { ...data, tecnico_profile: profile };
+  let tecnicoProfile: Tables<'profiles'> | null = null;
+  if (data.tecnico_id) {
+    const { data: profile } = await supabase.from('profiles').select('*').eq('user_id', data.tecnico_id).single();
+    tecnicoProfile = profile;
+  }
+  return { ...data, tecnico_profile: tecnicoProfile };
 }

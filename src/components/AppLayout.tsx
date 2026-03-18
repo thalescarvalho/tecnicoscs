@@ -1,7 +1,7 @@
 import { ReactNode, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
-import { LayoutDashboard, ClipboardList, UserPlus, FileText, Wrench, Menu, X, LogOut, Users, Store, Download, BarChart3, Star } from 'lucide-react';
+import { LayoutDashboard, ClipboardList, UserPlus, FileText, Wrench, Menu, X, LogOut, Users, Store, Download, BarChart3, Star, ShoppingBag, CalendarPlus } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { usePWAInstall } from '@/hooks/usePWAInstall';
 import logo from '@/assets/logo.png';
@@ -21,6 +21,12 @@ const tecnicoLinks = [
   { to: '/meus-trabalhos', label: 'Meus Trabalhos', icon: Wrench },
 ];
 
+const vendedorLinks = [
+  { to: '/vendedor/trabalhos', label: 'Agendamentos', icon: ShoppingBag },
+  { to: '/vendedor/agendar', label: 'Agendar', icon: CalendarPlus },
+  { to: '/clientes', label: 'Clientes', icon: Store },
+];
+
 export function AppLayout({ children }: { children: ReactNode }) {
   const { profile, role, signOut } = useAuth();
   const navigate = useNavigate();
@@ -28,8 +34,8 @@ export function AppLayout({ children }: { children: ReactNode }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const { isInstallable, install } = usePWAInstall();
 
-  const links = (role === 'gestor' || role === 'admin') ? gestorLinks : tecnicoLinks;
-  const roleLabel = role === 'admin' ? '👑 Admin' : role === 'gestor' ? '👔 Gestor' : '🔧 Técnico';
+  const links = role === 'vendedor' ? vendedorLinks : (role === 'gestor' || role === 'admin') ? gestorLinks : tecnicoLinks;
+  const roleLabel = role === 'admin' ? '👑 Admin' : role === 'gestor' ? '👔 Gestor' : role === 'vendedor' ? '🛒 Vendedor' : '🔧 Técnico';
 
   const handleSignOut = async () => {
     await signOut();
@@ -38,7 +44,6 @@ export function AppLayout({ children }: { children: ReactNode }) {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      {/* Header */}
       <header className="sticky top-0 z-50 bg-gradient-to-r from-amber-600 to-orange-600 text-white border-b border-amber-700 px-4 py-3">
         <div className="flex items-center justify-between max-w-4xl mx-auto">
           <div className="flex items-center gap-3">
@@ -63,7 +68,6 @@ export function AppLayout({ children }: { children: ReactNode }) {
         </div>
       </header>
 
-      {/* Mobile menu */}
       <AnimatePresence>
         {menuOpen && (
           <motion.nav initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="bg-card border-b border-border overflow-hidden lg:hidden">
@@ -79,7 +83,6 @@ export function AppLayout({ children }: { children: ReactNode }) {
         )}
       </AnimatePresence>
 
-      {/* Desktop nav */}
       <nav className="hidden lg:block border-b border-border bg-card/50">
         <div className="flex gap-1 max-w-4xl mx-auto px-4 py-1">
           {links.map(link => (
@@ -91,7 +94,6 @@ export function AppLayout({ children }: { children: ReactNode }) {
         </div>
       </nav>
 
-      {/* Bottom nav mobile */}
       <nav className="fixed bottom-0 left-0 right-0 z-50 bg-card/95 backdrop-blur-md border-t border-border lg:hidden">
         <div className="flex justify-around py-2 px-2 max-w-md mx-auto">
           {links.map(link => {

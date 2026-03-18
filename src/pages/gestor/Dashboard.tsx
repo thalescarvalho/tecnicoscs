@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { fetchTrabalhosWithRelations, TrabalhoWithRelations } from '@/lib/queries';
 import { WorkCard } from '@/components/WorkCard';
-import { ClipboardList, Clock, CheckCircle2, AlertTriangle } from 'lucide-react';
+import { ClipboardList, Clock, CheckCircle2, AlertTriangle, Hourglass } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 export default function Dashboard() {
@@ -13,6 +13,7 @@ export default function Dashboard() {
   }, []);
 
   const counts = {
+    aguardando: trabalhos.filter(t => t.status === 'AGUARDANDO_APROVACAO').length,
     pendentes: trabalhos.filter(t => t.status === 'PENDENTE').length,
     andamento: trabalhos.filter(t => t.status === 'ANDAMENTO').length,
     concluidos: trabalhos.filter(t => t.status === 'CONCLUIDO').length,
@@ -20,6 +21,7 @@ export default function Dashboard() {
   };
 
   const kpis = [
+    { label: 'Aguardando', value: counts.aguardando, icon: Hourglass, color: 'bg-violet-500/15 text-foreground' },
     { label: 'Pendentes', value: counts.pendentes, icon: ClipboardList, color: 'bg-warning/15 text-foreground' },
     { label: 'Em andamento', value: counts.andamento, icon: Clock, color: 'bg-primary/15 text-foreground' },
     { label: 'Concluídos', value: counts.concluidos, icon: CheckCircle2, color: 'bg-success/15 text-foreground' },
@@ -34,7 +36,7 @@ export default function Dashboard() {
         <h1 className="text-2xl font-heading font-bold text-foreground">Dashboard</h1>
         <p className="text-sm text-muted-foreground mt-1">Visão geral dos atendimentos</p>
       </div>
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
         {kpis.map((kpi, i) => (
           <motion.div key={kpi.label} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.08 }}
             className={`${kpi.color} rounded-xl p-4 flex items-center gap-3`}>

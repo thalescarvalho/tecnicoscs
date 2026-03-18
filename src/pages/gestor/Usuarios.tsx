@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
-import { Users, Shield, Wrench, Trash2, KeyRound, Crown } from 'lucide-react';
+import { Users, Shield, Wrench, Trash2, KeyRound, Crown, ShoppingBag } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
@@ -100,6 +100,7 @@ export default function Usuarios() {
   const getRoleIcon = (role?: Enums<'app_role'> | null) => {
     if (role === 'admin') return <Crown className="w-5 h-5" />;
     if (role === 'gestor') return <Shield className="w-5 h-5" />;
+    if (role === 'vendedor') return <ShoppingBag className="w-5 h-5" />;
     if (role === 'tecnico') return <Wrench className="w-5 h-5" />;
     return <Users className="w-5 h-5" />;
   };
@@ -107,6 +108,7 @@ export default function Usuarios() {
   const getRoleColor = (role?: Enums<'app_role'> | null) => {
     if (role === 'admin') return 'bg-destructive/15 text-destructive';
     if (role === 'gestor') return 'bg-primary/15 text-primary';
+    if (role === 'vendedor') return 'bg-violet-500/15 text-violet-600';
     if (role === 'tecnico') return 'bg-success/15 text-success';
     return 'bg-muted/30 text-muted-foreground';
   };
@@ -144,6 +146,7 @@ export default function Usuarios() {
                   <SelectItem value="none">Sem papel</SelectItem>
                   {isAdmin && <SelectItem value="admin">Admin</SelectItem>}
                   <SelectItem value="gestor">Gestor</SelectItem>
+                  <SelectItem value="vendedor">Vendedor</SelectItem>
                   <SelectItem value="tecnico">Técnico</SelectItem>
                 </SelectContent>
               </Select>
