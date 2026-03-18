@@ -136,20 +136,29 @@ export default function Clientes() {
                   </div>
                 )}
               </div>
+              <Button variant="ghost" size="icon" className="shrink-0 text-muted-foreground hover:text-destructive"
+                onClick={(e) => { e.stopPropagation(); setDeleteTarget(c); }}>
+                <Trash2 className="w-4 h-4" />
+              </Button>
             </div>
           </motion.button>
         ))}
       </div>
 
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle className="font-heading">{editingId ? 'Editar Cliente' : 'Novo Cliente'}</DialogTitle>
-          </DialogHeader>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-foreground">Nome Fantasia *</label>
-              <Input placeholder="Ex: Padaria Bom Pão" value={nome} onChange={e => setNome(e.target.value)} required maxLength={100} />
+      <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir cliente</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja excluir <strong>{deleteTarget?.nome}</strong>? Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Excluir</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium text-foreground">Endereço *</label>
