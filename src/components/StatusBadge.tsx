@@ -4,6 +4,7 @@ type TrabalhoStatus = Enums<'trabalho_status'>;
 type Prioridade = Enums<'prioridade'>;
 
 const statusConfig: Record<TrabalhoStatus, { label: string; className: string }> = {
+  AGUARDANDO_APROVACAO: { label: 'Aguardando', className: 'bg-violet-500/15 text-foreground border border-violet-500/30' },
   PENDENTE: { label: 'Pendente', className: 'bg-warning/15 text-foreground border border-warning/30' },
   ANDAMENTO: { label: 'Em andamento', className: 'bg-primary/15 text-foreground border border-primary/30' },
   CONCLUIDO: { label: 'Concluído', className: 'bg-success/15 text-foreground border border-success/30' },

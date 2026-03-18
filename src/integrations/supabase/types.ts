@@ -169,7 +169,7 @@ export type Database = {
           nome_produto: string
           observacao?: string | null
           peso_unidade?: string
-          peso_valor: number
+          peso_valor?: number
           quantidade?: number | null
           trabalho_id: string
         }
@@ -235,7 +235,7 @@ export type Database = {
           end_at: string | null
           end_lat: number | null
           end_lng: number | null
-          gestor_id: string
+          gestor_id: string | null
           id: string
           observacoes_gestor: string | null
           observacoes_tecnico: string | null
@@ -245,11 +245,12 @@ export type Database = {
           start_lat: number | null
           start_lng: number | null
           status: Database["public"]["Enums"]["trabalho_status"]
-          tecnico_id: string
+          tecnico_id: string | null
           tipo_servico: string
           titulo: string
           updated_at: string
           vendedor: string | null
+          vendedor_id: string | null
         }
         Insert: {
           cliente_id: string
@@ -259,7 +260,7 @@ export type Database = {
           end_at?: string | null
           end_lat?: number | null
           end_lng?: number | null
-          gestor_id: string
+          gestor_id?: string | null
           id?: string
           observacoes_gestor?: string | null
           observacoes_tecnico?: string | null
@@ -269,11 +270,12 @@ export type Database = {
           start_lat?: number | null
           start_lng?: number | null
           status?: Database["public"]["Enums"]["trabalho_status"]
-          tecnico_id: string
+          tecnico_id?: string | null
           tipo_servico: string
           titulo: string
           updated_at?: string
           vendedor?: string | null
+          vendedor_id?: string | null
         }
         Update: {
           cliente_id?: string
@@ -283,7 +285,7 @@ export type Database = {
           end_at?: string | null
           end_lat?: number | null
           end_lng?: number | null
-          gestor_id?: string
+          gestor_id?: string | null
           id?: string
           observacoes_gestor?: string | null
           observacoes_tecnico?: string | null
@@ -293,11 +295,12 @@ export type Database = {
           start_lat?: number | null
           start_lng?: number | null
           status?: Database["public"]["Enums"]["trabalho_status"]
-          tecnico_id?: string
+          tecnico_id?: string | null
           tipo_servico?: string
           titulo?: string
           updated_at?: string
           vendedor?: string | null
+          vendedor_id?: string | null
         }
         Relationships: [
           {
