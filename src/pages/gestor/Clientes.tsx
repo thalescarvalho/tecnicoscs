@@ -139,10 +139,12 @@ export default function Clientes() {
                   </div>
                 )}
               </div>
-              <Button variant="ghost" size="icon" className="shrink-0 text-muted-foreground hover:text-destructive"
-                onClick={(e) => { e.stopPropagation(); setDeleteTarget(c); }}>
-                <Trash2 className="w-4 h-4" />
-              </Button>
+              {canDelete && (
+                <Button variant="ghost" size="icon" className="shrink-0 text-muted-foreground hover:text-destructive"
+                  onClick={(e) => { e.stopPropagation(); setDeleteTarget(c); }}>
+                  <Trash2 className="w-4 h-4" />
+                </Button>
+              )}
             </div>
           </motion.button>
         ))}
