@@ -302,10 +302,17 @@ export default function TrabalhoDetalhes() {
 
       {/* PDF & WhatsApp for concluded works */}
       {trabalho.status === 'CONCLUIDO' && (
-        <div className="flex gap-2 pt-2">
-          <Button variant="outline" className="flex-1" onClick={handleExportPDF}><Download className="w-4 h-4 mr-2" /> Exportar PDF</Button>
+        <div className="flex flex-col gap-2 pt-2">
+          <div className="flex gap-2">
+            <Button variant="outline" className="flex-1" onClick={handleExportPDF}><Download className="w-4 h-4 mr-2" /> Exportar PDF</Button>
+            {isTecnico && (
+              <Button variant="outline" className="flex-1" onClick={handleShareWhatsApp}><Share2 className="w-4 h-4 mr-2" /> Avaliação WhatsApp</Button>
+            )}
+          </div>
           {isTecnico && (
-            <Button variant="outline" className="flex-1" onClick={handleShareWhatsApp}><Share2 className="w-4 h-4 mr-2" /> Avaliação WhatsApp</Button>
+            <Button variant="outline" className="w-full" onClick={handleVendedorPDF}>
+              <FileText className="w-4 h-4 mr-2" /> PDF para Vendedor
+            </Button>
           )}
         </div>
       )}
