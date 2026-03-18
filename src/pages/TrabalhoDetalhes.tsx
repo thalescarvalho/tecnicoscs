@@ -122,6 +122,12 @@ export default function TrabalhoDetalhes() {
 
   const handleExportPDF = () => exportTrabalhoPDF(trabalho, itens);
 
+  const handleVendedorPDF = async () => {
+    toast.info('Gerando PDF para o vendedor...');
+    await exportVendedorPDF(trabalho, itens, fotos);
+    toast.success('PDF do vendedor gerado!');
+  };
+
   const handleShareWhatsApp = () => {
     const baseUrl = window.location.origin;
     const avaliacaoUrl = `${baseUrl}/avaliacao?trabalho=${trabalho.id}`;
