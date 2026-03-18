@@ -6,7 +6,7 @@ import { StatusBadge } from '@/components/StatusBadge';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { exportTrabalhoPDF } from '@/lib/pdfExport';
-import type { Tables } from '@/integrations/supabase/types';
+import { toast } from 'sonner';
 
 export default function Relatorios() {
   const navigate = useNavigate();
@@ -18,8 +18,14 @@ export default function Relatorios() {
   }, []);
 
   const handlePDF = async (t: TrabalhoWithRelations) => {
-    const { data: itens } = await supabase.from('itens_produzidos').select('*').eq('trabalho_id', t.id);
-    exportTrabalhoPDF(t, itens || []);
+    try {
+      const { data: itens } = await supabase.from('itens_produzidos').select('*').eq('trabalho_id', t.id);
+      exportTrabalhoPDF(t, itens || []);
+      toast.success('PDF gerado!');
+    } catch (e: any) {
+      console.error('Erro ao gerar PDF:', e);
+      toast.error('Erro ao gerar PDF: ' + e.message);
+    }
   };
 
   if (loading) return <div className="flex justify-center py-12"><div className="animate-spin w-8 h-8 border-2 border-primary border-t-transparent rounded-full" /></div>;

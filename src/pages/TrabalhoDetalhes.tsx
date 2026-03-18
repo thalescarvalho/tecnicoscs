@@ -120,12 +120,25 @@ export default function TrabalhoDetalhes() {
     toast.success('Observação salva!');
   };
 
-  const handleExportPDF = () => exportTrabalhoPDF(trabalho, itens);
+  const handleExportPDF = () => {
+    try {
+      exportTrabalhoPDF(trabalho, itens);
+      toast.success('PDF gerado!');
+    } catch (e: any) {
+      console.error('Erro ao gerar PDF:', e);
+      toast.error('Erro ao gerar PDF: ' + e.message);
+    }
+  };
 
   const handleVendedorPDF = async () => {
-    toast.info('Gerando PDF para o vendedor...');
-    await exportVendedorPDF(trabalho, itens, fotos);
-    toast.success('PDF do vendedor gerado!');
+    try {
+      toast.info('Gerando PDF para o vendedor...');
+      await exportVendedorPDF(trabalho, itens, fotos);
+      toast.success('PDF do vendedor gerado!');
+    } catch (e: any) {
+      console.error('Erro ao gerar PDF vendedor:', e);
+      toast.error('Erro ao gerar PDF: ' + e.message);
+    }
   };
 
   const handleShareWhatsApp = () => {
