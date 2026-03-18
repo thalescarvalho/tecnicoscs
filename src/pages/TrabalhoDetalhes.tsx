@@ -7,7 +7,7 @@ import { StatusBadge, PrioridadeBadge } from '@/components/StatusBadge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { ArrowLeft, MapPin, Clock, Package, Camera, User, Phone, Navigation, Trash2, Download, Share2 } from 'lucide-react';
+import { ArrowLeft, MapPin, Clock, Package, Camera, User, Phone, Navigation, Trash2, Download, Share2, FileText } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
 import { exportTrabalhoPDF, exportVendedorPDF } from '@/lib/pdfExport';
