@@ -132,6 +132,10 @@ export default function CriarTrabalho() {
           </Select>
         </div>
         <div className="space-y-2">
+          <label className="text-sm font-medium text-foreground">Vendedor</label>
+          <Input placeholder="Nome do vendedor" value={vendedor} onChange={e => setVendedor(e.target.value)} />
+        </div>
+        <div className="space-y-2">
           <label className="text-sm font-medium text-foreground">Observações</label>
           <Textarea placeholder="Observações adicionais..." rows={2} value={observacoes} onChange={e => setObservacoes(e.target.value)} />
         </div>
