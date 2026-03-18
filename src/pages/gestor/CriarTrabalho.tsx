@@ -25,6 +25,7 @@ export default function CriarTrabalho() {
   const [dataPrevista, setDataPrevista] = useState('');
   const [tecnicoId, setTecnicoId] = useState('');
   const [observacoes, setObservacoes] = useState('');
+  const [vendedor, setVendedor] = useState('');
 
   useEffect(() => {
     async function fetchData() {
