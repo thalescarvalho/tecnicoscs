@@ -16,7 +16,7 @@ export default function Clientes() {
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [saving, setSaving] = useState(false);
-
+  const [deleteTarget, setDeleteTarget] = useState<Cliente | null>(null);
   // Form state
   const [nome, setNome] = useState('');
   const [endereco, setEndereco] = useState('');
