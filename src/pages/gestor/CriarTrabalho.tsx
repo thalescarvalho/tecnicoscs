@@ -25,6 +25,7 @@ export default function CriarTrabalho() {
   const [dataPrevista, setDataPrevista] = useState('');
   const [tecnicoId, setTecnicoId] = useState('');
   const [observacoes, setObservacoes] = useState('');
+  const [vendedor, setVendedor] = useState('');
 
   useEffect(() => {
     async function fetchData() {
@@ -63,7 +64,7 @@ export default function CriarTrabalho() {
     } else {
       const { data: newClient, error: clientError } = await supabase
         .from('clientes')
-        .insert({ nome: clienteNome, endereco: clienteEndereco, telefone: '-' })
+        .insert({ nome: clienteNome, endereco: clienteEndereco, telefone: '-', vendedor: vendedor || null })
         .select('id')
         .single();
       if (clientError || !newClient) {
@@ -129,6 +130,10 @@ export default function CriarTrabalho() {
               ) : tecnicos.map(t => <SelectItem key={t.user_id} value={t.user_id}>{t.nome}</SelectItem>)}
             </SelectContent>
           </Select>
+        </div>
+        <div className="space-y-2">
+          <label className="text-sm font-medium text-foreground">Vendedor</label>
+          <Input placeholder="Nome do vendedor" value={vendedor} onChange={e => setVendedor(e.target.value)} />
         </div>
         <div className="space-y-2">
           <label className="text-sm font-medium text-foreground">Observações</label>

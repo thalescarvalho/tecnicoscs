@@ -7,10 +7,10 @@ import { StatusBadge, PrioridadeBadge } from '@/components/StatusBadge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { ArrowLeft, MapPin, Clock, Package, Camera, User, Phone, Navigation, Trash2, Download, Share2 } from 'lucide-react';
+import { ArrowLeft, MapPin, Clock, Package, Camera, User, Phone, Navigation, Trash2, Download, Share2, FileText } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
-import { exportTrabalhoPDF } from '@/lib/pdfExport';
+import { exportTrabalhoPDF, exportVendedorPDF } from '@/lib/pdfExport';
 import type { Tables } from '@/integrations/supabase/types';
 
 export default function TrabalhoDetalhes() {
@@ -121,6 +121,12 @@ export default function TrabalhoDetalhes() {
   };
 
   const handleExportPDF = () => exportTrabalhoPDF(trabalho, itens);
+
+  const handleVendedorPDF = async () => {
+    toast.info('Gerando PDF para o vendedor...');
+    await exportVendedorPDF(trabalho, itens, fotos);
+    toast.success('PDF do vendedor gerado!');
+  };
 
   const handleShareWhatsApp = () => {
     const baseUrl = window.location.origin;
@@ -296,10 +302,17 @@ export default function TrabalhoDetalhes() {
 
       {/* PDF & WhatsApp for concluded works */}
       {trabalho.status === 'CONCLUIDO' && (
-        <div className="flex gap-2 pt-2">
-          <Button variant="outline" className="flex-1" onClick={handleExportPDF}><Download className="w-4 h-4 mr-2" /> Exportar PDF</Button>
+        <div className="flex flex-col gap-2 pt-2">
+          <div className="flex gap-2">
+            <Button variant="outline" className="flex-1" onClick={handleExportPDF}><Download className="w-4 h-4 mr-2" /> Exportar PDF</Button>
+            {isTecnico && (
+              <Button variant="outline" className="flex-1" onClick={handleShareWhatsApp}><Share2 className="w-4 h-4 mr-2" /> Avaliação WhatsApp</Button>
+            )}
+          </div>
           {isTecnico && (
-            <Button variant="outline" className="flex-1" onClick={handleShareWhatsApp}><Share2 className="w-4 h-4 mr-2" /> Avaliação WhatsApp</Button>
+            <Button variant="outline" className="w-full" onClick={handleVendedorPDF}>
+              <FileText className="w-4 h-4 mr-2" /> PDF para Vendedor
+            </Button>
           )}
         </div>
       )}
