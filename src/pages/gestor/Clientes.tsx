@@ -8,10 +8,13 @@ import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import type { Tables } from '@/integrations/supabase/types';
+import { useAuth } from '@/hooks/useAuth';
 
 type Cliente = Tables<'clientes'> & { vendedor?: string | null };
 
 export default function Clientes() {
+  const { role } = useAuth();
+  const canDelete = role === 'gestor' || role === 'admin';
   const [clientes, setClientes] = useState<Cliente[]>([]);
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -136,10 +139,12 @@ export default function Clientes() {
                   </div>
                 )}
               </div>
-              <Button variant="ghost" size="icon" className="shrink-0 text-muted-foreground hover:text-destructive"
-                onClick={(e) => { e.stopPropagation(); setDeleteTarget(c); }}>
-                <Trash2 className="w-4 h-4" />
-              </Button>
+              {canDelete && (
+                <Button variant="ghost" size="icon" className="shrink-0 text-muted-foreground hover:text-destructive"
+                  onClick={(e) => { e.stopPropagation(); setDeleteTarget(c); }}>
+                  <Trash2 className="w-4 h-4" />
+                </Button>
+              )}
             </div>
           </motion.button>
         ))}
