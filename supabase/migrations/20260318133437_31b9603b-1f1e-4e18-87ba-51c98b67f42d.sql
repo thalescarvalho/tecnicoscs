@@ -1,0 +1,1 @@
+CREATE POLICY "Gestores can delete clientes" ON public.clientes FOR DELETE TO authenticated USING (is_admin_or_gestor(auth.uid()));

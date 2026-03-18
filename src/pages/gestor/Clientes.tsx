@@ -2,10 +2,11 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
-import { Plus, Store, MapPin, User, X } from 'lucide-react';
+import { Plus, Store, MapPin, User, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import type { Tables } from '@/integrations/supabase/types';
 
 type Cliente = Tables<'clientes'> & { vendedor?: string | null };
@@ -15,7 +16,7 @@ export default function Clientes() {
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [saving, setSaving] = useState(false);
-
+  const [deleteTarget, setDeleteTarget] = useState<Cliente | null>(null);
   // Form state
   const [nome, setNome] = useState('');
   const [endereco, setEndereco] = useState('');
@@ -81,6 +82,18 @@ export default function Clientes() {
     fetchClientes();
   };
 
+  const handleDelete = async () => {
+    if (!deleteTarget) return;
+    const { error } = await supabase.from('clientes').delete().eq('id', deleteTarget.id);
+    if (error) {
+      toast.error(error.message.includes('violates foreign key') ? 'Este cliente possui trabalhos vinculados e não pode ser excluído.' : 'Erro: ' + error.message);
+    } else {
+      toast.success('Cliente excluído!');
+      fetchClientes();
+    }
+    setDeleteTarget(null);
+  };
+
   if (loading) return <div className="flex justify-center py-12"><div className="animate-spin w-8 h-8 border-2 border-primary border-t-transparent rounded-full" /></div>;
 
   return (
@@ -123,10 +136,29 @@ export default function Clientes() {
                   </div>
                 )}
               </div>
+              <Button variant="ghost" size="icon" className="shrink-0 text-muted-foreground hover:text-destructive"
+                onClick={(e) => { e.stopPropagation(); setDeleteTarget(c); }}>
+                <Trash2 className="w-4 h-4" />
+              </Button>
             </div>
           </motion.button>
         ))}
       </div>
+
+      <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir cliente</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja excluir <strong>{deleteTarget?.nome}</strong>? Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Excluir</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="max-w-md">
