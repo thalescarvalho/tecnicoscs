@@ -300,7 +300,7 @@ export default function TrabalhoDetalhes() {
               <PopoverContent className="w-auto p-0" align="start">
                 <Calendar
                   mode="single"
-                  selected={new Date(trabalho.data_prevista + 'T00:00:00')}
+                  selected={(() => { const [y,m,d] = trabalho.data_prevista.split('-').map(Number); return new Date(y, m - 1, d); })()}
                   onSelect={async (date) => {
                     if (!date) return;
                     const formatted = format(date, 'yyyy-MM-dd');
