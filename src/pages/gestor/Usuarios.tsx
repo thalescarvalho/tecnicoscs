@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
-import { Users, Shield, Wrench, Trash2, KeyRound, Crown, ShoppingBag } from 'lucide-react';
+import { Users, Shield, Wrench, Trash2, KeyRound, Crown, ShoppingBag, Mail } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
@@ -16,6 +16,7 @@ type ProfileWithRole = Tables<'profiles'> & { role?: Enums<'app_role'> | null };
 export default function Usuarios() {
   const { role: myRole } = useAuth();
   const isAdmin = myRole === 'admin';
+  const isGestorOrAdmin = myRole === 'admin' || myRole === 'gestor';
   const [users, setUsers] = useState<ProfileWithRole[]>([]);
   const [loading, setLoading] = useState(true);
   const [passwordDialog, setPasswordDialog] = useState<{ open: boolean; userId: string; userName: string }>({ open: false, userId: '', userName: '' });
@@ -134,6 +135,12 @@ export default function Usuarios() {
               </div>
               <div className="min-w-0">
                 <p className="text-sm font-semibold text-foreground truncate">{u.nome}</p>
+                {u.email && (
+                  <p className="text-xs text-muted-foreground flex items-center gap-1 truncate">
+                    <Mail className="w-3 h-3 shrink-0" />
+                    {u.email}
+                  </p>
+                )}
                 <p className="text-xs text-muted-foreground">{u.ativo ? 'Ativo' : 'Inativo'}</p>
               </div>
             </div>
@@ -151,55 +158,54 @@ export default function Usuarios() {
                 </SelectContent>
               </Select>
 
-              {isAdmin && (
-                <>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="text-muted-foreground hover:text-primary"
-                    onClick={() => setPasswordDialog({ open: true, userId: u.user_id, userName: u.nome })}
-                    title="Trocar senha"
-                  >
-                    <KeyRound className="w-4 h-4" />
-                  </Button>
+              {isGestorOrAdmin && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="text-muted-foreground hover:text-primary"
+                  onClick={() => setPasswordDialog({ open: true, userId: u.user_id, userName: u.nome })}
+                  title="Resetar senha"
+                >
+                  <KeyRound className="w-4 h-4" />
+                </Button>
+              )}
 
-                  <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                      <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-destructive" title="Deletar usuário">
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>Deletar usuário</AlertDialogTitle>
-                        <AlertDialogDescription>
-                          Tem certeza que deseja deletar <strong>{u.nome}</strong>? Esta ação é irreversível e removerá todos os dados do usuário.
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                        <AlertDialogAction
-                          onClick={() => handleDeleteUser(u.user_id)}
-                          className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                          disabled={actionLoading}
-                        >
-                          {actionLoading ? 'Deletando...' : 'Deletar'}
-                        </AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
-                </>
+              {isAdmin && (
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-destructive" title="Deletar usuário">
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Deletar usuário</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Tem certeza que deseja deletar <strong>{u.nome}</strong>? Esta ação é irreversível e removerá todos os dados do usuário.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                      <AlertDialogAction
+                        onClick={() => handleDeleteUser(u.user_id)}
+                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                        disabled={actionLoading}
+                      >
+                        {actionLoading ? 'Deletando...' : 'Deletar'}
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
               )}
             </div>
           </motion.div>
         ))}
       </div>
 
-      {/* Change password dialog */}
       <Dialog open={passwordDialog.open} onOpenChange={(open) => { if (!open) { setPasswordDialog({ open: false, userId: '', userName: '' }); setNewPassword(''); } }}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Trocar senha de {passwordDialog.userName}</DialogTitle>
+            <DialogTitle>Resetar senha de {passwordDialog.userName}</DialogTitle>
           </DialogHeader>
           <div className="py-4">
             <Input
