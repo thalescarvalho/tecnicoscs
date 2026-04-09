@@ -41,6 +41,7 @@ export default function TrabalhoDetalhes() {
 
   // Weight editing
   const [editingWeights, setEditingWeights] = useState<Record<string, string>>({});
+  const [fotoAmpliadaUrl, setFotoAmpliadaUrl] = useState<string | null>(null);
 
   async function fetchData() {
     const [t, iRes, fRes] = await Promise.all([
