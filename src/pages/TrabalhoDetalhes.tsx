@@ -289,7 +289,7 @@ export default function TrabalhoDetalhes() {
         <div className="flex items-center gap-2 text-xs text-muted-foreground">
           <span>Tipo: {trabalho.tipo_servico}</span>
           <span>·</span>
-          <span>Previsto: {new Date(trabalho.data_prevista).toLocaleDateString('pt-BR')}</span>
+          <span>Previsto: {(() => { const [y,m,d] = trabalho.data_prevista.split('-').map(Number); return `${String(d).padStart(2,'0')}/${String(m).padStart(2,'0')}/${y}`; })()}</span>
           {isGestor && trabalho.status !== 'CONCLUIDO' && trabalho.status !== 'CANCELADO' && (
             <Popover>
               <PopoverTrigger asChild>
@@ -300,7 +300,7 @@ export default function TrabalhoDetalhes() {
               <PopoverContent className="w-auto p-0" align="start">
                 <Calendar
                   mode="single"
-                  selected={new Date(trabalho.data_prevista + 'T00:00:00')}
+                  selected={(() => { const [y,m,d] = trabalho.data_prevista.split('-').map(Number); return new Date(y, m - 1, d); })()}
                   onSelect={async (date) => {
                     if (!date) return;
                     const formatted = format(date, 'yyyy-MM-dd');
