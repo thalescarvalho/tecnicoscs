@@ -23,7 +23,6 @@ Deno.serve(async (req) => {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
-    // Verify the caller is an admin
     const userClient = createClient(supabaseUrl, Deno.env.get("SUPABASE_PUBLISHABLE_KEY")!, {
       global: { headers: { Authorization: authHeader } },
     });
@@ -37,16 +36,19 @@ Deno.serve(async (req) => {
 
     const adminClient = createClient(supabaseUrl, serviceRoleKey);
 
-    // Check caller is admin
+    // Check caller role
     const { data: roleData } = await adminClient
       .from("user_roles")
       .select("role")
       .eq("user_id", caller.id)
-      .eq("role", "admin")
       .maybeSingle();
 
-    if (!roleData) {
-      return new Response(JSON.stringify({ error: "Forbidden: admin only" }), {
+    const callerRole = roleData?.role;
+    const isAdmin = callerRole === "admin";
+    const isGestor = callerRole === "gestor";
+
+    if (!isAdmin && !isGestor) {
+      return new Response(JSON.stringify({ error: "Forbidden: admin or gestor only" }), {
         status: 403,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -55,7 +57,12 @@ Deno.serve(async (req) => {
     const { action, targetUserId, newPassword } = await req.json();
 
     if (action === "delete_user") {
-      // Delete profile, roles, then auth user
+      if (!isAdmin) {
+        return new Response(JSON.stringify({ error: "Forbidden: admin only" }), {
+          status: 403,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
       await adminClient.from("user_roles").delete().eq("user_id", targetUserId);
       await adminClient.from("profiles").delete().eq("user_id", targetUserId);
       const { error } = await adminClient.auth.admin.deleteUser(targetUserId);
