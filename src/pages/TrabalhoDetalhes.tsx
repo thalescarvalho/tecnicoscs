@@ -422,13 +422,19 @@ export default function TrabalhoDetalhes() {
         {fotos.length > 0 ? (
           <div className="grid grid-cols-2 gap-2">
             {fotos.map(foto => (
-              <div key={foto.id} className="relative rounded-lg overflow-hidden aspect-square">
-                <img src={foto.url} alt={foto.legenda || 'Foto'} className="w-full h-full object-cover" />
+              <div key={foto.id} className="relative rounded-lg overflow-hidden aspect-square cursor-pointer" onClick={() => setFotoAmpliadaUrl(foto.url)}>
+                <img src={foto.url} alt={foto.legenda || 'Foto'} className="w-full h-full object-cover hover:scale-105 transition-transform" />
                 {foto.legenda && <div className="absolute bottom-0 left-0 right-0 bg-foreground/60 text-background text-[10px] px-2 py-1">{foto.legenda}</div>}
               </div>
             ))}
           </div>
         ) : <p className="text-xs text-muted-foreground">Nenhuma foto anexada</p>}
+
+        <Dialog open={!!fotoAmpliadaUrl} onOpenChange={(open) => { if (!open) setFotoAmpliadaUrl(null); }}>
+          <DialogContent className="max-w-[90vw] max-h-[90vh] p-2 flex items-center justify-center">
+            {fotoAmpliadaUrl && <img src={fotoAmpliadaUrl} alt="Foto ampliada" className="max-w-full max-h-[85vh] object-contain rounded-lg" />}
+          </DialogContent>
+        </Dialog>
         {isTecnico && trabalho.status === 'ANDAMENTO' && (
           <label className="block">
             <input type="file" accept="image/*" capture="environment" onChange={handleFotoUpload} className="hidden" />
