@@ -286,7 +286,36 @@ export default function TrabalhoDetalhes() {
       <div className="glass-card rounded-xl p-4 space-y-2">
         <h3 className="text-sm font-semibold text-foreground">Descrição</h3>
         <p className="text-sm text-muted-foreground">{trabalho.descricao}</p>
-        <p className="text-xs text-muted-foreground">Tipo: {trabalho.tipo_servico} · Previsto: {new Date(trabalho.data_prevista).toLocaleDateString('pt-BR')}</p>
+        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+          <span>Tipo: {trabalho.tipo_servico}</span>
+          <span>·</span>
+          <span>Previsto: {new Date(trabalho.data_prevista).toLocaleDateString('pt-BR')}</span>
+          {isGestor && trabalho.status !== 'CONCLUIDO' && trabalho.status !== 'CANCELADO' && (
+            <Popover>
+              <PopoverTrigger asChild>
+                <button className="p-1 rounded hover:bg-secondary transition-colors" title="Alterar data">
+                  <CalendarIcon className="w-3.5 h-3.5 text-primary" />
+                </button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="single"
+                  selected={new Date(trabalho.data_prevista + 'T00:00:00')}
+                  onSelect={async (date) => {
+                    if (!date) return;
+                    const formatted = format(date, 'yyyy-MM-dd');
+                    const { error } = await supabase.from('trabalhos').update({ data_prevista: formatted }).eq('id', id!);
+                    if (error) { toast.error('Erro ao alterar data: ' + error.message); return; }
+                    toast.success('Data alterada para ' + format(date, 'dd/MM/yyyy'));
+                    fetchData();
+                  }}
+                  locale={ptBR}
+                  className={cn("p-3 pointer-events-auto")}
+                />
+              </PopoverContent>
+            </Popover>
+          )}
+        </div>
         {trabalho.tecnico_profile && (
           <p className="text-xs text-muted-foreground">Técnico: {trabalho.tecnico_profile.nome}</p>
         )}
