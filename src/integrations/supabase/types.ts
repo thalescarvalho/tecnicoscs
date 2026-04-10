@@ -231,8 +231,13 @@ export type Database = {
       }
       trabalhos: {
         Row: {
+          cidade_trabalho: string | null
           cliente_id: string
           created_at: string
+          custo_alimentacao: number | null
+          custo_hospedagem: number | null
+          custo_translado_cidade: number | null
+          custo_translado_cliente: number | null
           data_prevista: string
           descricao: string
           end_at: string | null
@@ -249,6 +254,7 @@ export type Database = {
           start_lng: number | null
           status: Database["public"]["Enums"]["trabalho_status"]
           tecnico_id: string | null
+          tem_custos: boolean
           tipo_servico: string
           titulo: string
           updated_at: string
@@ -256,8 +262,13 @@ export type Database = {
           vendedor_id: string | null
         }
         Insert: {
+          cidade_trabalho?: string | null
           cliente_id: string
           created_at?: string
+          custo_alimentacao?: number | null
+          custo_hospedagem?: number | null
+          custo_translado_cidade?: number | null
+          custo_translado_cliente?: number | null
           data_prevista: string
           descricao: string
           end_at?: string | null
@@ -274,6 +285,7 @@ export type Database = {
           start_lng?: number | null
           status?: Database["public"]["Enums"]["trabalho_status"]
           tecnico_id?: string | null
+          tem_custos?: boolean
           tipo_servico: string
           titulo: string
           updated_at?: string
@@ -281,8 +293,13 @@ export type Database = {
           vendedor_id?: string | null
         }
         Update: {
+          cidade_trabalho?: string | null
           cliente_id?: string
           created_at?: string
+          custo_alimentacao?: number | null
+          custo_hospedagem?: number | null
+          custo_translado_cidade?: number | null
+          custo_translado_cliente?: number | null
           data_prevista?: string
           descricao?: string
           end_at?: string | null
@@ -299,6 +316,7 @@ export type Database = {
           start_lng?: number | null
           status?: Database["public"]["Enums"]["trabalho_status"]
           tecnico_id?: string | null
+          tem_custos?: boolean
           tipo_servico?: string
           titulo?: string
           updated_at?: string
