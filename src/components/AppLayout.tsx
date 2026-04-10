@@ -1,7 +1,7 @@
 import { ReactNode, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
-import { LayoutDashboard, ClipboardList, UserPlus, FileText, Wrench, Menu, X, LogOut, Users, Store, Download, BarChart3, Star, ShoppingBag, CalendarPlus } from 'lucide-react';
+import { LayoutDashboard, ClipboardList, UserPlus, FileText, Wrench, Menu, X, LogOut, Users, Store, Download, BarChart3, Star, ShoppingBag, CalendarPlus, DollarSign } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { usePWAInstall } from '@/hooks/usePWAInstall';
 import logo from '@/assets/logo.png';
@@ -15,6 +15,7 @@ const gestorLinks = [
   { to: '/relatorios', label: 'Relatórios', icon: FileText },
   { to: '/producao', label: 'Produção', icon: BarChart3 },
   { to: '/avaliacoes', label: 'Avaliações', icon: Star },
+  { to: '/custos', label: 'Custos', icon: DollarSign },
 ];
 
 const tecnicoLinks = [
