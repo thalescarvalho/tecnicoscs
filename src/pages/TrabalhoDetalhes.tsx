@@ -88,11 +88,20 @@ export default function TrabalhoDetalhes() {
   const handleAprovar = async () => {
     if (!selectedTecnico) { toast.error('Selecione um técnico'); return; }
     setActionLoading(true);
-    const { error } = await supabase.from('trabalhos').update({
+    const updateData: any = {
       status: 'PENDENTE' as any,
       tecnico_id: selectedTecnico,
       gestor_id: user!.id,
-    }).eq('id', id!);
+      tem_custos: temCustos,
+    };
+    if (temCustos) {
+      updateData.cidade_trabalho = cidadeTrabalho || null;
+      updateData.custo_translado_cidade = parseFloat(custoTransladoCidade) || 0;
+      updateData.custo_translado_cliente = parseFloat(custoTransladoCliente) || 0;
+      updateData.custo_hospedagem = parseFloat(custoHospedagem) || 0;
+      updateData.custo_alimentacao = parseFloat(custoAlimentacao) || 0;
+    }
+    const { error } = await supabase.from('trabalhos').update(updateData).eq('id', id!);
     setActionLoading(false);
     if (error) { toast.error('Erro: ' + error.message); return; }
     toast.success('Trabalho aprovado e atribuído!');
