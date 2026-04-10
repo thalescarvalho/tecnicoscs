@@ -237,6 +237,38 @@ export default function CriarTrabalho() {
           <label className="text-sm font-medium text-foreground">Observações</label>
           <Textarea placeholder="Observações adicionais..." rows={2} value={observacoes} onChange={e => setObservacoes(e.target.value)} />
         </div>
+
+        {/* Custos */}
+        <div className="flex items-center gap-2 pt-1">
+          <Checkbox id="temCustosCriar" checked={temCustos} onCheckedChange={(v) => setTemCustos(!!v)} />
+          <label htmlFor="temCustosCriar" className="text-sm font-medium cursor-pointer">Este trabalho terá custos</label>
+        </div>
+        {temCustos && (
+          <div className="space-y-2 pl-3 border-l-2 border-primary/30">
+            <div>
+              <label className="text-xs text-muted-foreground">Cidade do trabalho</label>
+              <Input placeholder="Ex: São Paulo" value={cidadeTrabalho} onChange={e => setCidadeTrabalho(e.target.value)} />
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <label className="text-xs text-muted-foreground">Translado cidade (R$)</label>
+                <Input type="number" step="0.01" placeholder="0,00" value={custoTransladoCidade} onChange={e => setCustoTransladoCidade(e.target.value)} />
+              </div>
+              <div>
+                <label className="text-xs text-muted-foreground">Translado cliente (R$)</label>
+                <Input type="number" step="0.01" placeholder="0,00" value={custoTransladoCliente} onChange={e => setCustoTransladoCliente(e.target.value)} />
+              </div>
+              <div>
+                <label className="text-xs text-muted-foreground">Hospedagem (R$)</label>
+                <Input type="number" step="0.01" placeholder="0,00" value={custoHospedagem} onChange={e => setCustoHospedagem(e.target.value)} />
+              </div>
+              <div>
+                <label className="text-xs text-muted-foreground">Alimentação (R$)</label>
+                <Input type="number" step="0.01" placeholder="0,00" value={custoAlimentacao} onChange={e => setCustoAlimentacao(e.target.value)} />
+              </div>
+            </div>
+          </div>
+        )}
         <Button type="submit" className="w-full h-12 text-base font-semibold" disabled={loading}>
           {loading ? 'Criando...' : 'Criar Trabalho'}
         </Button>
