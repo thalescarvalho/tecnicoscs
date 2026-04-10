@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
+import { Checkbox } from '@/components/ui/checkbox';
 import type { Tables } from '@/integrations/supabase/types';
 
 const tiposTrabalho = ['Desmanche', 'Trabalho técnico', 'Suporte', 'Apresentação'];
@@ -26,6 +27,12 @@ export default function CriarTrabalho() {
   const [tecnicoId, setTecnicoId] = useState('');
   const [observacoes, setObservacoes] = useState('');
   const [vendedor, setVendedor] = useState('');
+  const [temCustos, setTemCustos] = useState(false);
+  const [cidadeTrabalho, setCidadeTrabalho] = useState('');
+  const [custoTransladoCidade, setCustoTransladoCidade] = useState('');
+  const [custoTransladoCliente, setCustoTransladoCliente] = useState('');
+  const [custoHospedagem, setCustoHospedagem] = useState('');
+  const [custoAlimentacao, setCustoAlimentacao] = useState('');
 
   // Autocomplete state
   const [clientes, setClientes] = useState<Tables<'clientes'>[]>([]);
@@ -135,6 +142,14 @@ export default function CriarTrabalho() {
       titulo, descricao, tipo_servico: tipoTrabalho,
       data_prevista: dataPrevista,
       observacoes_gestor: observacoes || null,
+      tem_custos: temCustos,
+      ...(temCustos ? {
+        cidade_trabalho: cidadeTrabalho || null,
+        custo_translado_cidade: parseFloat(custoTransladoCidade) || 0,
+        custo_translado_cliente: parseFloat(custoTransladoCliente) || 0,
+        custo_hospedagem: parseFloat(custoHospedagem) || 0,
+        custo_alimentacao: parseFloat(custoAlimentacao) || 0,
+      } : {}),
     });
     setLoading(false);
     if (error) { toast.error('Erro ao criar trabalho: ' + error.message); return; }
