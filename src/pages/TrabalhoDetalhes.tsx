@@ -8,7 +8,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ArrowLeft, MapPin, Clock, Package, Camera, User, Phone, Navigation, Trash2, Download, Share2, FileText, CheckCircle2, CalendarIcon } from 'lucide-react';
+import { ArrowLeft, MapPin, Clock, Package, Camera, User, Phone, Navigation, Trash2, Download, Share2, FileText, CheckCircle2, CalendarIcon, DollarSign } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { format } from 'date-fns';
@@ -38,6 +39,14 @@ export default function TrabalhoDetalhes() {
   // Approval state
   const [tecnicos, setTecnicos] = useState<(Tables<'profiles'> & { user_id: string })[]>([]);
   const [selectedTecnico, setSelectedTecnico] = useState('');
+
+  // Cost state
+  const [temCustos, setTemCustos] = useState(false);
+  const [cidadeTrabalho, setCidadeTrabalho] = useState('');
+  const [custoTransladoCidade, setCustoTransladoCidade] = useState('');
+  const [custoTransladoCliente, setCustoTransladoCliente] = useState('');
+  const [custoHospedagem, setCustoHospedagem] = useState('');
+  const [custoAlimentacao, setCustoAlimentacao] = useState('');
 
   // Weight editing
   const [editingWeights, setEditingWeights] = useState<Record<string, string>>({});
