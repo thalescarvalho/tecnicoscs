@@ -392,6 +392,7 @@ export default function TrabalhoDetalhes() {
         </div>
       )}
 
+      {isGestor && (trabalho.start_at || trabalho.end_at) && (
         <div className="glass-card rounded-xl p-4 space-y-3">
           <h3 className="text-sm font-semibold text-foreground flex items-center gap-2"><Clock className="w-4 h-4 text-primary" /> Linha do tempo</h3>
           {trabalho.start_at && (
