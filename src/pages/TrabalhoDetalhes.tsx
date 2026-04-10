@@ -105,7 +105,7 @@ export default function TrabalhoDetalhes() {
     }).eq('id', id!);
     setActionLoading(false);
     if (error) { toast.error('Erro: ' + error.message); return; }
-    toast.success('Trabalho iniciado!' + (lat ? ' Localização capturada.' : ' Localização indisponível.'));
+    toast.success('Trabalho iniciado!');
     fetchData();
   };
 
@@ -323,7 +323,7 @@ export default function TrabalhoDetalhes() {
         )}
       </div>
 
-      {(trabalho.start_at || trabalho.end_at) && (
+      {isGestor && (trabalho.start_at || trabalho.end_at) && (
         <div className="glass-card rounded-xl p-4 space-y-3">
           <h3 className="text-sm font-semibold text-foreground flex items-center gap-2"><Clock className="w-4 h-4 text-primary" /> Linha do tempo</h3>
           {trabalho.start_at && (
