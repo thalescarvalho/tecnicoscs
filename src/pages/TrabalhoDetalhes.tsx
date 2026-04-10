@@ -290,6 +290,40 @@ export default function TrabalhoDetalhes() {
               ) : tecnicos.map(t => <SelectItem key={t.user_id} value={t.user_id}>{t.nome}</SelectItem>)}
             </SelectContent>
           </Select>
+
+          {/* Cost checkbox */}
+          <div className="flex items-center gap-2 pt-1">
+            <Checkbox id="temCustos" checked={temCustos} onCheckedChange={(v) => setTemCustos(!!v)} />
+            <label htmlFor="temCustos" className="text-sm font-medium cursor-pointer">Este trabalho terá custos</label>
+          </div>
+
+          {temCustos && (
+            <div className="space-y-2 pl-1 border-l-2 border-primary/30 ml-2">
+              <div>
+                <label className="text-xs text-muted-foreground">Cidade do trabalho</label>
+                <Input placeholder="Ex: São Paulo" value={cidadeTrabalho} onChange={e => setCidadeTrabalho(e.target.value)} />
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="text-xs text-muted-foreground">Translado cidade (R$)</label>
+                  <Input type="number" step="0.01" placeholder="0,00" value={custoTransladoCidade} onChange={e => setCustoTransladoCidade(e.target.value)} />
+                </div>
+                <div>
+                  <label className="text-xs text-muted-foreground">Translado cliente (R$)</label>
+                  <Input type="number" step="0.01" placeholder="0,00" value={custoTransladoCliente} onChange={e => setCustoTransladoCliente(e.target.value)} />
+                </div>
+                <div>
+                  <label className="text-xs text-muted-foreground">Hospedagem (R$)</label>
+                  <Input type="number" step="0.01" placeholder="0,00" value={custoHospedagem} onChange={e => setCustoHospedagem(e.target.value)} />
+                </div>
+                <div>
+                  <label className="text-xs text-muted-foreground">Alimentação (R$)</label>
+                  <Input type="number" step="0.01" placeholder="0,00" value={custoAlimentacao} onChange={e => setCustoAlimentacao(e.target.value)} />
+                </div>
+              </div>
+            </div>
+          )}
+
           <Button onClick={handleAprovar} disabled={actionLoading || !selectedTecnico} className="w-full">
             ✅ Aprovar e Atribuir
           </Button>
