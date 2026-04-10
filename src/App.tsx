@@ -10,6 +10,7 @@ import Dashboard from "./pages/gestor/Dashboard";
 import Trabalhos from "./pages/gestor/Trabalhos";
 import CriarTrabalho from "./pages/gestor/CriarTrabalho";
 import Relatorios from "./pages/gestor/Relatorios";
+import RelatorioCustos from "./pages/gestor/RelatorioCustos";
 import Producao from "./pages/gestor/Producao";
 import Avaliacoes from "./pages/gestor/Avaliacoes";
 import AvaliacaoPublica from "./pages/AvaliacaoPublica";
@@ -77,6 +78,7 @@ const App = () => (
             <Route path="/trabalhos" element={<ProtectedRoute><RoleRoute allowedRoles={['gestor']}><AppLayout><Trabalhos /></AppLayout></RoleRoute></ProtectedRoute>} />
             <Route path="/trabalhos/novo" element={<ProtectedRoute><RoleRoute allowedRoles={['gestor']}><AppLayout><CriarTrabalho /></AppLayout></RoleRoute></ProtectedRoute>} />
             <Route path="/relatorios" element={<ProtectedRoute><RoleRoute allowedRoles={['gestor']}><AppLayout><Relatorios /></AppLayout></RoleRoute></ProtectedRoute>} />
+            <Route path="/custos" element={<ProtectedRoute><RoleRoute allowedRoles={['gestor']}><AppLayout><RelatorioCustos /></AppLayout></RoleRoute></ProtectedRoute>} />
             <Route path="/producao" element={<ProtectedRoute><RoleRoute allowedRoles={['gestor']}><AppLayout><Producao /></AppLayout></RoleRoute></ProtectedRoute>} />
             <Route path="/avaliacoes" element={<ProtectedRoute><RoleRoute allowedRoles={['gestor']}><AppLayout><Avaliacoes /></AppLayout></RoleRoute></ProtectedRoute>} />
             <Route path="/avaliacao" element={<AvaliacaoPublica />} />

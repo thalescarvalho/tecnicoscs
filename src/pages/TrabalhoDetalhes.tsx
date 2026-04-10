@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ArrowLeft, MapPin, Clock, Package, Camera, User, Phone, Navigation, Trash2, Download, Share2, FileText, CheckCircle2, CalendarIcon } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { format } from 'date-fns';
@@ -38,6 +39,14 @@ export default function TrabalhoDetalhes() {
   // Approval state
   const [tecnicos, setTecnicos] = useState<(Tables<'profiles'> & { user_id: string })[]>([]);
   const [selectedTecnico, setSelectedTecnico] = useState('');
+
+  // Cost state
+  const [temCustos, setTemCustos] = useState(false);
+  const [cidadeTrabalho, setCidadeTrabalho] = useState('');
+  const [custoTransladoCidade, setCustoTransladoCidade] = useState('');
+  const [custoTransladoCliente, setCustoTransladoCliente] = useState('');
+  const [custoHospedagem, setCustoHospedagem] = useState('');
+  const [custoAlimentacao, setCustoAlimentacao] = useState('');
 
   // Weight editing
   const [editingWeights, setEditingWeights] = useState<Record<string, string>>({});
@@ -79,11 +88,20 @@ export default function TrabalhoDetalhes() {
   const handleAprovar = async () => {
     if (!selectedTecnico) { toast.error('Selecione um técnico'); return; }
     setActionLoading(true);
-    const { error } = await supabase.from('trabalhos').update({
+    const updateData: any = {
       status: 'PENDENTE' as any,
       tecnico_id: selectedTecnico,
       gestor_id: user!.id,
-    }).eq('id', id!);
+      tem_custos: temCustos,
+    };
+    if (temCustos) {
+      updateData.cidade_trabalho = cidadeTrabalho || null;
+      updateData.custo_translado_cidade = parseFloat(custoTransladoCidade) || 0;
+      updateData.custo_translado_cliente = parseFloat(custoTransladoCliente) || 0;
+      updateData.custo_hospedagem = parseFloat(custoHospedagem) || 0;
+      updateData.custo_alimentacao = parseFloat(custoAlimentacao) || 0;
+    }
+    const { error } = await supabase.from('trabalhos').update(updateData).eq('id', id!);
     setActionLoading(false);
     if (error) { toast.error('Erro: ' + error.message); return; }
     toast.success('Trabalho aprovado e atribuído!');
@@ -272,6 +290,40 @@ export default function TrabalhoDetalhes() {
               ) : tecnicos.map(t => <SelectItem key={t.user_id} value={t.user_id}>{t.nome}</SelectItem>)}
             </SelectContent>
           </Select>
+
+          {/* Cost checkbox */}
+          <div className="flex items-center gap-2 pt-1">
+            <Checkbox id="temCustos" checked={temCustos} onCheckedChange={(v) => setTemCustos(!!v)} />
+            <label htmlFor="temCustos" className="text-sm font-medium cursor-pointer">Este trabalho terá custos</label>
+          </div>
+
+          {temCustos && (
+            <div className="space-y-2 pl-1 border-l-2 border-primary/30 ml-2">
+              <div>
+                <label className="text-xs text-muted-foreground">Cidade do trabalho</label>
+                <Input placeholder="Ex: São Paulo" value={cidadeTrabalho} onChange={e => setCidadeTrabalho(e.target.value)} />
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="text-xs text-muted-foreground">Translado cidade (R$)</label>
+                  <Input type="number" step="0.01" placeholder="0,00" value={custoTransladoCidade} onChange={e => setCustoTransladoCidade(e.target.value)} />
+                </div>
+                <div>
+                  <label className="text-xs text-muted-foreground">Translado cliente (R$)</label>
+                  <Input type="number" step="0.01" placeholder="0,00" value={custoTransladoCliente} onChange={e => setCustoTransladoCliente(e.target.value)} />
+                </div>
+                <div>
+                  <label className="text-xs text-muted-foreground">Hospedagem (R$)</label>
+                  <Input type="number" step="0.01" placeholder="0,00" value={custoHospedagem} onChange={e => setCustoHospedagem(e.target.value)} />
+                </div>
+                <div>
+                  <label className="text-xs text-muted-foreground">Alimentação (R$)</label>
+                  <Input type="number" step="0.01" placeholder="0,00" value={custoAlimentacao} onChange={e => setCustoAlimentacao(e.target.value)} />
+                </div>
+              </div>
+            </div>
+          )}
+
           <Button onClick={handleAprovar} disabled={actionLoading || !selectedTecnico} className="w-full">
             ✅ Aprovar e Atribuir
           </Button>
@@ -322,6 +374,23 @@ export default function TrabalhoDetalhes() {
           <p className="text-xs text-muted-foreground">Técnico: {trabalho.tecnico_profile.nome}</p>
         )}
       </div>
+
+      {/* Cost display for gestor */}
+      {isGestor && (trabalho as any).tem_custos && (
+        <div className="glass-card rounded-xl p-4 space-y-2">
+          <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">💰 Custos</h3>
+          {(trabalho as any).cidade_trabalho && <p className="text-xs text-muted-foreground">Cidade: {(trabalho as any).cidade_trabalho}</p>}
+          <div className="grid grid-cols-2 gap-2 text-xs">
+            <div className="bg-secondary/50 rounded p-2"><span className="text-muted-foreground">Translado cidade</span><p className="font-semibold">R$ {Number((trabalho as any).custo_translado_cidade || 0).toFixed(2)}</p></div>
+            <div className="bg-secondary/50 rounded p-2"><span className="text-muted-foreground">Translado cliente</span><p className="font-semibold">R$ {Number((trabalho as any).custo_translado_cliente || 0).toFixed(2)}</p></div>
+            <div className="bg-secondary/50 rounded p-2"><span className="text-muted-foreground">Hospedagem</span><p className="font-semibold">R$ {Number((trabalho as any).custo_hospedagem || 0).toFixed(2)}</p></div>
+            <div className="bg-secondary/50 rounded p-2"><span className="text-muted-foreground">Alimentação</span><p className="font-semibold">R$ {Number((trabalho as any).custo_alimentacao || 0).toFixed(2)}</p></div>
+          </div>
+          <div className="text-xs font-semibold text-right pt-1">
+            Total: R$ {(Number((trabalho as any).custo_translado_cidade || 0) + Number((trabalho as any).custo_translado_cliente || 0) + Number((trabalho as any).custo_hospedagem || 0) + Number((trabalho as any).custo_alimentacao || 0)).toFixed(2)}
+          </div>
+        </div>
+      )}
 
       {isGestor && (trabalho.start_at || trabalho.end_at) && (
         <div className="glass-card rounded-xl p-4 space-y-3">

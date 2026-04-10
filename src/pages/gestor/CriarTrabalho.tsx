@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
+import { Checkbox } from '@/components/ui/checkbox';
 import type { Tables } from '@/integrations/supabase/types';
 
 const tiposTrabalho = ['Desmanche', 'Trabalho técnico', 'Suporte', 'Apresentação'];
@@ -26,6 +27,12 @@ export default function CriarTrabalho() {
   const [tecnicoId, setTecnicoId] = useState('');
   const [observacoes, setObservacoes] = useState('');
   const [vendedor, setVendedor] = useState('');
+  const [temCustos, setTemCustos] = useState(false);
+  const [cidadeTrabalho, setCidadeTrabalho] = useState('');
+  const [custoTransladoCidade, setCustoTransladoCidade] = useState('');
+  const [custoTransladoCliente, setCustoTransladoCliente] = useState('');
+  const [custoHospedagem, setCustoHospedagem] = useState('');
+  const [custoAlimentacao, setCustoAlimentacao] = useState('');
 
   // Autocomplete state
   const [clientes, setClientes] = useState<Tables<'clientes'>[]>([]);
@@ -135,6 +142,14 @@ export default function CriarTrabalho() {
       titulo, descricao, tipo_servico: tipoTrabalho,
       data_prevista: dataPrevista,
       observacoes_gestor: observacoes || null,
+      tem_custos: temCustos,
+      ...(temCustos ? {
+        cidade_trabalho: cidadeTrabalho || null,
+        custo_translado_cidade: parseFloat(custoTransladoCidade) || 0,
+        custo_translado_cliente: parseFloat(custoTransladoCliente) || 0,
+        custo_hospedagem: parseFloat(custoHospedagem) || 0,
+        custo_alimentacao: parseFloat(custoAlimentacao) || 0,
+      } : {}),
     });
     setLoading(false);
     if (error) { toast.error('Erro ao criar trabalho: ' + error.message); return; }
@@ -222,6 +237,38 @@ export default function CriarTrabalho() {
           <label className="text-sm font-medium text-foreground">Observações</label>
           <Textarea placeholder="Observações adicionais..." rows={2} value={observacoes} onChange={e => setObservacoes(e.target.value)} />
         </div>
+
+        {/* Custos */}
+        <div className="flex items-center gap-2 pt-1">
+          <Checkbox id="temCustosCriar" checked={temCustos} onCheckedChange={(v) => setTemCustos(!!v)} />
+          <label htmlFor="temCustosCriar" className="text-sm font-medium cursor-pointer">Este trabalho terá custos</label>
+        </div>
+        {temCustos && (
+          <div className="space-y-2 pl-3 border-l-2 border-primary/30">
+            <div>
+              <label className="text-xs text-muted-foreground">Cidade do trabalho</label>
+              <Input placeholder="Ex: São Paulo" value={cidadeTrabalho} onChange={e => setCidadeTrabalho(e.target.value)} />
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <label className="text-xs text-muted-foreground">Translado cidade (R$)</label>
+                <Input type="number" step="0.01" placeholder="0,00" value={custoTransladoCidade} onChange={e => setCustoTransladoCidade(e.target.value)} />
+              </div>
+              <div>
+                <label className="text-xs text-muted-foreground">Translado cliente (R$)</label>
+                <Input type="number" step="0.01" placeholder="0,00" value={custoTransladoCliente} onChange={e => setCustoTransladoCliente(e.target.value)} />
+              </div>
+              <div>
+                <label className="text-xs text-muted-foreground">Hospedagem (R$)</label>
+                <Input type="number" step="0.01" placeholder="0,00" value={custoHospedagem} onChange={e => setCustoHospedagem(e.target.value)} />
+              </div>
+              <div>
+                <label className="text-xs text-muted-foreground">Alimentação (R$)</label>
+                <Input type="number" step="0.01" placeholder="0,00" value={custoAlimentacao} onChange={e => setCustoAlimentacao(e.target.value)} />
+              </div>
+            </div>
+          </div>
+        )}
         <Button type="submit" className="w-full h-12 text-base font-semibold" disabled={loading}>
           {loading ? 'Criando...' : 'Criar Trabalho'}
         </Button>
