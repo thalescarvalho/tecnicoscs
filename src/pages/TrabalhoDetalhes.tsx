@@ -375,7 +375,23 @@ export default function TrabalhoDetalhes() {
         )}
       </div>
 
-      {isGestor && (trabalho.start_at || trabalho.end_at) && (
+      {/* Cost display for gestor */}
+      {isGestor && (trabalho as any).tem_custos && (
+        <div className="glass-card rounded-xl p-4 space-y-2">
+          <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">💰 Custos</h3>
+          {(trabalho as any).cidade_trabalho && <p className="text-xs text-muted-foreground">Cidade: {(trabalho as any).cidade_trabalho}</p>}
+          <div className="grid grid-cols-2 gap-2 text-xs">
+            <div className="bg-secondary/50 rounded p-2"><span className="text-muted-foreground">Translado cidade</span><p className="font-semibold">R$ {Number((trabalho as any).custo_translado_cidade || 0).toFixed(2)}</p></div>
+            <div className="bg-secondary/50 rounded p-2"><span className="text-muted-foreground">Translado cliente</span><p className="font-semibold">R$ {Number((trabalho as any).custo_translado_cliente || 0).toFixed(2)}</p></div>
+            <div className="bg-secondary/50 rounded p-2"><span className="text-muted-foreground">Hospedagem</span><p className="font-semibold">R$ {Number((trabalho as any).custo_hospedagem || 0).toFixed(2)}</p></div>
+            <div className="bg-secondary/50 rounded p-2"><span className="text-muted-foreground">Alimentação</span><p className="font-semibold">R$ {Number((trabalho as any).custo_alimentacao || 0).toFixed(2)}</p></div>
+          </div>
+          <div className="text-xs font-semibold text-right pt-1">
+            Total: R$ {(Number((trabalho as any).custo_translado_cidade || 0) + Number((trabalho as any).custo_translado_cliente || 0) + Number((trabalho as any).custo_hospedagem || 0) + Number((trabalho as any).custo_alimentacao || 0)).toFixed(2)}
+          </div>
+        </div>
+      )}
+
         <div className="glass-card rounded-xl p-4 space-y-3">
           <h3 className="text-sm font-semibold text-foreground flex items-center gap-2"><Clock className="w-4 h-4 text-primary" /> Linha do tempo</h3>
           {trabalho.start_at && (
