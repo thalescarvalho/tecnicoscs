@@ -2,10 +2,17 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { dateKeyToLocalDate, localDateToDateKey, useTecnicoDatasOcupadas } from '@/hooks/useTecnicoDatasOcupadas';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Calendar } from '@/components/ui/calendar';
+import { cn } from '@/lib/utils';
+import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
+import { CalendarIcon } from 'lucide-react';
 import { toast } from 'sonner';
 import { Checkbox } from '@/components/ui/checkbox';
 import type { Tables } from '@/integrations/supabase/types';
@@ -33,6 +40,7 @@ export default function CriarTrabalho() {
   const [custoTransladoCliente, setCustoTransladoCliente] = useState('');
   const [custoHospedagem, setCustoHospedagem] = useState('');
   const [custoAlimentacao, setCustoAlimentacao] = useState('');
+  const { datasOcupadas, isDateOccupied } = useTecnicoDatasOcupadas(tecnicoId);
 
   // Autocomplete state
   const [clientes, setClientes] = useState<Tables<'clientes'>[]>([]);
@@ -102,6 +110,10 @@ export default function CriarTrabalho() {
     e.preventDefault();
     if (!clienteNome || !clienteEndereco || !tecnicoId || !titulo || !descricao || !tipoTrabalho || !dataPrevista) {
       toast.error('Preencha todos os campos obrigatórios');
+      return;
+    }
+    if (datasOcupadas.has(dataPrevista)) {
+      toast.error('O técnico selecionado já possui um trabalho nessa data');
       return;
     }
     setLoading(true);
@@ -216,7 +228,47 @@ export default function CriarTrabalho() {
         </div>
         <div className="space-y-2">
           <label className="text-sm font-medium text-foreground">Data prevista *</label>
-          <Input type="date" value={dataPrevista} onChange={e => setDataPrevista(e.target.value)} required />
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                type="button"
+                variant="outline"
+                className={cn(
+                  'w-full justify-start text-left font-normal',
+                  !dataPrevista && 'text-muted-foreground',
+                  dataPrevista && datasOcupadas.has(dataPrevista) && 'border-destructive/40 text-destructive'
+                )}
+              >
+                <CalendarIcon className="mr-2 h-4 w-4" />
+                {dataPrevista ? format(dateKeyToLocalDate(dataPrevista), 'dd/MM/yyyy', { locale: ptBR }) : <span>Selecione a data</span>}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <Calendar
+                mode="single"
+                selected={dataPrevista ? dateKeyToLocalDate(dataPrevista) : undefined}
+                onSelect={(date) => setDataPrevista(date ? localDateToDateKey(date) : '')}
+                disabled={(date) => isDateOccupied(date)}
+                modifiers={{ ocupado: (date) => isDateOccupied(date) }}
+                modifiersStyles={{
+                  ocupado: {
+                    color: 'hsl(var(--destructive))',
+                    backgroundColor: 'hsl(var(--destructive) / 0.12)',
+                    fontWeight: 600,
+                    opacity: 1,
+                  },
+                }}
+                locale={ptBR}
+                className={cn('p-3 pointer-events-auto')}
+              />
+            </PopoverContent>
+          </Popover>
+          {tecnicoId && datasOcupadas.size > 0 && (
+            <p className="text-xs text-muted-foreground">Datas em vermelho já estão ocupadas para este técnico.</p>
+          )}
+          {dataPrevista && datasOcupadas.has(dataPrevista) && (
+            <p className="text-xs font-medium text-destructive">O técnico selecionado já possui um trabalho nesta data.</p>
+          )}
         </div>
         <div className="space-y-2">
           <label className="text-sm font-medium text-foreground">Técnico responsável *</label>
