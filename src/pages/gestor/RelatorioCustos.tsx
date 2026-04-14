@@ -214,13 +214,13 @@ export default function RelatorioCustos() {
                 ))}
               </TableBody>
               <TableFooter>
-                <TableRow>
-                  <TableCell colSpan={5} className="text-xs font-bold text-right">TOTAL</TableCell>
-                  <TableCell className="text-xs text-right font-bold">R$ {totalGeral('custo_translado_cidade').toFixed(2)}</TableCell>
-                  <TableCell className="text-xs text-right font-bold">R$ {totalGeral('custo_translado_cliente').toFixed(2)}</TableCell>
-                  <TableCell className="text-xs text-right font-bold">R$ {totalGeral('custo_hospedagem').toFixed(2)}</TableCell>
-                  <TableCell className="text-xs text-right font-bold">R$ {totalGeral('custo_alimentacao').toFixed(2)}</TableCell>
-                  <TableCell className="text-xs text-right font-bold">R$ {totalGeralAll.toFixed(2)}</TableCell>
+              <TableRow>
+                  <TableCell colSpan={5} className="text-xs font-bold text-right text-foreground">TOTAL</TableCell>
+                  <TableCell className="text-xs text-right font-bold text-foreground">R$ {totalGeral('custo_translado_cidade').toFixed(2)}</TableCell>
+                  <TableCell className="text-xs text-right font-bold text-foreground">R$ {totalGeral('custo_translado_cliente').toFixed(2)}</TableCell>
+                  <TableCell className="text-xs text-right font-bold text-foreground">R$ {totalGeral('custo_hospedagem').toFixed(2)}</TableCell>
+                  <TableCell className="text-xs text-right font-bold text-foreground">R$ {totalGeral('custo_alimentacao').toFixed(2)}</TableCell>
+                  <TableCell className="text-xs text-right font-bold text-foreground">R$ {totalGeralAll.toFixed(2)}</TableCell>
                 </TableRow>
               </TableFooter>
             </Table>
