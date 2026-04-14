@@ -2,6 +2,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { dateKeyToLocalDate, localDateToDateKey, useTecnicoDatasOcupadas } from '@/hooks/useTecnicoDatasOcupadas';
 import { fetchTrabalhoById, TrabalhoWithRelations } from '@/lib/queries';
 import { StatusBadge, PrioridadeBadge } from '@/components/StatusBadge';
 import { Button } from '@/components/ui/button';
@@ -84,9 +85,15 @@ export default function TrabalhoDetalhes() {
   const isTecnico = role === 'tecnico';
   const isGestor = role === 'gestor' || role === 'admin';
   const isVendedor = role === 'vendedor';
+  const tecnicoCalendarioId = selectedTecnico || trabalho?.tecnico_id || null;
+  const { datasOcupadas: datasOcupadasTecnico, isDateOccupied: isDateOccupiedTecnico } = useTecnicoDatasOcupadas(tecnicoCalendarioId, id);
 
   const handleAprovar = async () => {
     if (!selectedTecnico) { toast.error('Selecione um técnico'); return; }
+    if (trabalho && datasOcupadasTecnico.has(trabalho.data_prevista)) {
+      toast.error('O técnico selecionado já possui um trabalho nessa data. Altere a data antes de aprovar.');
+      return;
+    }
     setActionLoading(true);
     const updateData: any = {
       status: 'PENDENTE' as any,
@@ -290,6 +297,9 @@ export default function TrabalhoDetalhes() {
               ) : tecnicos.map(t => <SelectItem key={t.user_id} value={t.user_id}>{t.nome}</SelectItem>)}
             </SelectContent>
           </Select>
+          {selectedTecnico && datasOcupadasTecnico.has(trabalho.data_prevista) && (
+            <p className="text-xs font-medium text-destructive">O técnico selecionado já possui um trabalho nesta data. Ajuste no calendário antes de aprovar.</p>
+          )}
 
           {/* Cost checkbox */}
           <div className="flex items-center gap-2 pt-1">
@@ -324,7 +334,7 @@ export default function TrabalhoDetalhes() {
             </div>
           )}
 
-          <Button onClick={handleAprovar} disabled={actionLoading || !selectedTecnico} className="w-full">
+          <Button onClick={handleAprovar} disabled={actionLoading || !selectedTecnico || datasOcupadasTecnico.has(trabalho.data_prevista)} className="w-full">
             ✅ Aprovar e Atribuir
           </Button>
         </motion.div>
@@ -354,14 +364,28 @@ export default function TrabalhoDetalhes() {
               <PopoverContent className="w-auto p-0" align="start">
                 <Calendar
                   mode="single"
-                  selected={(() => { const [y,m,d] = trabalho.data_prevista.split('-').map(Number); return new Date(y, m - 1, d); })()}
+                  selected={dateKeyToLocalDate(trabalho.data_prevista)}
                   onSelect={async (date) => {
                     if (!date) return;
-                    const formatted = format(date, 'yyyy-MM-dd');
+                    const formatted = localDateToDateKey(date);
+                    if (datasOcupadasTecnico.has(formatted)) {
+                      toast.error('O técnico selecionado já possui um trabalho nessa data');
+                      return;
+                    }
                     const { error } = await supabase.from('trabalhos').update({ data_prevista: formatted }).eq('id', id!);
                     if (error) { toast.error('Erro ao alterar data: ' + error.message); return; }
                     toast.success('Data alterada para ' + format(date, 'dd/MM/yyyy'));
                     fetchData();
+                  }}
+                  disabled={(date) => isDateOccupiedTecnico(date)}
+                  modifiers={{ ocupado: (date) => isDateOccupiedTecnico(date) }}
+                  modifiersStyles={{
+                    ocupado: {
+                      color: 'hsl(var(--destructive))',
+                      backgroundColor: 'hsl(var(--destructive) / 0.12)',
+                      fontWeight: 600,
+                      opacity: 1,
+                    },
                   }}
                   locale={ptBR}
                   className={cn("p-3 pointer-events-auto")}

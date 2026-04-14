@@ -99,6 +99,9 @@ export default function RelatorioCustos() {
     return `${day}/${m}/${y}`;
   };
 
+  const formatCurrency = (value: number) =>
+    new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
+
   const exportPDF = () => {
     const doc = new jsPDF({ orientation: 'landscape' });
     const pw = doc.internal.pageSize.getWidth();
@@ -112,8 +115,12 @@ export default function RelatorioCustos() {
     const tecnicoNome = selectedTecnico === 'todos' ? 'Todos' : tecnicos.find(t => t.user_id === selectedTecnico)?.nome || '';
     doc.text(`Período: ${formatDate(dataInicio)} a ${formatDate(dataFim)} | Técnico: ${tecnicoNome}`, pw / 2, 26, { align: 'center' });
 
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(31, 41, 55);
+    doc.text(`Total completo de custos: ${formatCurrency(totalGeralAll)}`, pw / 2, 33, { align: 'center' });
+
     autoTable(doc, {
-      startY: 34,
+      startY: 40,
       head: [['Data', 'Trabalho', 'Cliente', 'Técnico', 'Cidade', 'Transl. Cidade', 'Transl. Cliente', 'Hospedagem', 'Alimentação', 'Total']],
       body: dados.map(d => [
         formatDate(d.data_prevista),
@@ -121,25 +128,39 @@ export default function RelatorioCustos() {
         d.cliente_nome,
         d.tecnico_nome,
         d.cidade_trabalho || '—',
-        `R$ ${d.custo_translado_cidade.toFixed(2)}`,
-        `R$ ${d.custo_translado_cliente.toFixed(2)}`,
-        `R$ ${d.custo_hospedagem.toFixed(2)}`,
-        `R$ ${d.custo_alimentacao.toFixed(2)}`,
-        `R$ ${totalTrabalho(d).toFixed(2)}`,
+        formatCurrency(d.custo_translado_cidade),
+        formatCurrency(d.custo_translado_cliente),
+        formatCurrency(d.custo_hospedagem),
+        formatCurrency(d.custo_alimentacao),
+        formatCurrency(totalTrabalho(d)),
       ]),
-      foot: [['', '', '', '', 'TOTAL',
-        `R$ ${totalGeral('custo_translado_cidade').toFixed(2)}`,
-        `R$ ${totalGeral('custo_translado_cliente').toFixed(2)}`,
-        `R$ ${totalGeral('custo_hospedagem').toFixed(2)}`,
-        `R$ ${totalGeral('custo_alimentacao').toFixed(2)}`,
-        `R$ ${totalGeralAll.toFixed(2)}`,
+      foot: [['', '', '', '', 'TOTAIS',
+        formatCurrency(totalGeral('custo_translado_cidade')),
+        formatCurrency(totalGeral('custo_translado_cliente')),
+        formatCurrency(totalGeral('custo_hospedagem')),
+        formatCurrency(totalGeral('custo_alimentacao')),
+        formatCurrency(totalGeralAll),
       ]],
       theme: 'grid',
-      headStyles: { fillColor: [217, 119, 6], fontSize: 7 },
-      footStyles: { fillColor: [255, 237, 213], fontStyle: 'bold', fontSize: 7 },
-      bodyStyles: { fontSize: 7 },
+      headStyles: { fillColor: [217, 119, 6], textColor: [255, 255, 255], fontSize: 7 },
+      footStyles: { fillColor: [255, 237, 213], textColor: [31, 41, 55], fontStyle: 'bold', fontSize: 7 },
+      bodyStyles: { fontSize: 7, textColor: [31, 41, 55] },
       margin: { left: 10, right: 10 },
     });
+
+    let summaryY = ((doc as any).lastAutoTable?.finalY ?? 40) + 8;
+    if (summaryY > doc.internal.pageSize.getHeight() - 18) {
+      doc.addPage();
+      summaryY = 20;
+    }
+
+    doc.setFillColor(255, 247, 237);
+    doc.setDrawColor(217, 119, 6);
+    doc.roundedRect(10, summaryY, pw - 20, 12, 2, 2, 'FD');
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(31, 41, 55);
+    doc.text(`Total completo de custos do período: ${formatCurrency(totalGeralAll)}`, pw / 2, summaryY + 8, { align: 'center' });
 
     doc.save(`custos-${dataInicio}-a-${dataFim}.pdf`);
     toast.success('PDF exportado!');
