@@ -148,19 +148,6 @@ export default function RelatorioCustos() {
       margin: { left: 10, right: 10 },
     });
 
-    let summaryY = ((doc as any).lastAutoTable?.finalY ?? 40) + 8;
-    if (summaryY > doc.internal.pageSize.getHeight() - 18) {
-      doc.addPage();
-      summaryY = 20;
-    }
-
-    doc.setFillColor(255, 247, 237);
-    doc.setDrawColor(217, 119, 6);
-    doc.roundedRect(10, summaryY, pw - 20, 12, 2, 2, 'FD');
-    doc.setFontSize(10);
-    doc.setFont('helvetica', 'bold');
-    doc.setTextColor(31, 41, 55);
-    doc.text(`Total completo de custos do período: ${formatCurrency(totalGeralAll)}`, pw / 2, summaryY + 8, { align: 'center' });
 
     doc.save(`custos-${dataInicio}-a-${dataFim}.pdf`);
     toast.success('PDF exportado!');
