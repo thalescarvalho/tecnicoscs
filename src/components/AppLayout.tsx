@@ -98,12 +98,12 @@ export function AppLayout({ children }: { children: ReactNode }) {
       </nav>
 
       <nav className="fixed bottom-0 left-0 right-0 z-50 bg-card/95 backdrop-blur-md border-t border-border lg:hidden">
-        <div className="flex justify-around py-2 px-2 max-w-md mx-auto">
+        <div className="flex gap-1 py-2 px-2 overflow-x-auto scrollbar-hide [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
           {links.map(link => {
             const active = location.pathname.startsWith(link.to);
             return (
               <button key={link.to} onClick={() => navigate(link.to)}
-                className={`flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-lg text-[10px] font-medium transition-colors ${active ? 'text-primary' : 'text-muted-foreground'}`}>
+                className={`flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-lg text-[10px] font-medium transition-colors shrink-0 min-w-[64px] ${active ? 'text-primary' : 'text-muted-foreground'}`}>
                 <link.icon className={`w-5 h-5 ${active ? 'text-primary' : ''}`} />{link.label}
               </button>
             );
