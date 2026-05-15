@@ -11,7 +11,6 @@ const gestorLinks = [
   { to: '/trabalhos', label: 'Trabalhos', icon: ClipboardList },
   { to: '/trabalhos/novo', label: 'Novo', icon: UserPlus },
   { to: '/clientes', label: 'Clientes', icon: Store },
-  { to: '/usuarios', label: 'Usuários', icon: Users },
   { to: '/relatorios', label: 'Relatórios', icon: FileText },
   { to: '/producao', label: 'Produção', icon: BarChart3 },
   { to: '/avaliacoes', label: 'Avaliações', icon: Star },
@@ -35,7 +34,10 @@ export function AppLayout({ children }: { children: ReactNode }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const { isInstallable, install } = usePWAInstall();
 
-  const links = role === 'vendedor' ? vendedorLinks : (role === 'gestor' || role === 'admin') ? gestorLinks : tecnicoLinks;
+  const baseLinks = role === 'vendedor' ? vendedorLinks : (role === 'gestor' || role === 'admin') ? gestorLinks : tecnicoLinks;
+  const links = role === 'admin'
+    ? [...baseLinks, { to: '/usuarios', label: 'Usuários', icon: Users }]
+    : baseLinks;
   const roleLabel = role === 'admin' ? '👑 Admin' : role === 'gestor' ? '👔 Gestor' : role === 'vendedor' ? '🛒 Vendedor' : '🔧 Técnico';
 
   const handleSignOut = async () => {

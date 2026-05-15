@@ -97,6 +97,7 @@ export type Database = {
           referencia: string | null
           telefone: string
           vendedor: string | null
+          vendedor_id: string | null
         }
         Insert: {
           created_at?: string
@@ -107,6 +108,7 @@ export type Database = {
           referencia?: string | null
           telefone: string
           vendedor?: string | null
+          vendedor_id?: string | null
         }
         Update: {
           created_at?: string
@@ -117,6 +119,7 @@ export type Database = {
           referencia?: string | null
           telefone?: string
           vendedor?: string | null
+          vendedor_id?: string | null
         }
         Relationships: []
       }
