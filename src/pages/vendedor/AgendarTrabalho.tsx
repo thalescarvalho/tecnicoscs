@@ -99,7 +99,7 @@ export default function AgendarTrabalho() {
         clienteId = existing[0].id;
       } else {
         const { data: newC, error: cErr } = await supabase.from('clientes')
-          .insert({ nome: clienteNome, endereco: clienteEndereco, telefone: '-', vendedor: user?.user_metadata?.nome || null })
+          .insert({ nome: clienteNome, endereco: clienteEndereco, telefone: '-', vendedor: user?.user_metadata?.nome || null, vendedor_id: user!.id })
           .select('id').single();
         if (cErr || !newC) { toast.error('Erro ao criar cliente: ' + (cErr?.message || '')); setLoading(false); return; }
         clienteId = newC.id;

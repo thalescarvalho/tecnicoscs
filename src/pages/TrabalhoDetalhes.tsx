@@ -397,6 +397,9 @@ export default function TrabalhoDetalhes() {
         {trabalho.tecnico_profile && (
           <p className="text-xs text-muted-foreground">Técnico: {trabalho.tecnico_profile.nome}</p>
         )}
+        {trabalho.vendedor_profile && (
+          <p className="text-xs text-muted-foreground">Vendedor: {trabalho.vendedor_profile.nome}</p>
+        )}
       </div>
 
       {/* Cost display for gestor */}
