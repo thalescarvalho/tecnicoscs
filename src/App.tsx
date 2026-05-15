@@ -55,6 +55,13 @@ function RoleRoute({ children, allowedRoles }: { children: React.ReactNode; allo
   return <>{children}</>;
 }
 
+function AdminRoute({ children }: { children: React.ReactNode }) {
+  const { role, loading } = useAuth();
+  if (loading) return <div className="flex justify-center items-center min-h-screen"><div className="animate-spin w-8 h-8 border-2 border-primary border-t-transparent rounded-full" /></div>;
+  if (role !== 'admin') return <Navigate to="/dashboard" replace />;
+  return <>{children}</>;
+}
+
 function AuthRedirect() {
   const { user, role, loading } = useAuth();
   if (loading) return <div className="flex justify-center items-center min-h-screen"><div className="animate-spin w-8 h-8 border-2 border-primary border-t-transparent rounded-full" /></div>;
@@ -82,7 +89,7 @@ const App = () => (
             <Route path="/producao" element={<ProtectedRoute><RoleRoute allowedRoles={['gestor']}><AppLayout><Producao /></AppLayout></RoleRoute></ProtectedRoute>} />
             <Route path="/avaliacoes" element={<ProtectedRoute><RoleRoute allowedRoles={['gestor']}><AppLayout><Avaliacoes /></AppLayout></RoleRoute></ProtectedRoute>} />
             <Route path="/avaliacao" element={<AvaliacaoPublica />} />
-            <Route path="/usuarios" element={<ProtectedRoute>{(() => { const { role } = useAuth(); return role === 'admin' ? <AppLayout><Usuarios /></AppLayout> : <Navigate to="/dashboard" replace />; })()}</ProtectedRoute>} />
+            <Route path="/usuarios" element={<ProtectedRoute><AdminRoute><AppLayout><Usuarios /></AppLayout></AdminRoute></ProtectedRoute>} />
             <Route path="/clientes" element={<ProtectedRoute><RoleRoute allowedRoles={['gestor', 'vendedor']}><AppLayout><Clientes /></AppLayout></RoleRoute></ProtectedRoute>} />
             <Route path="/meus-trabalhos" element={<ProtectedRoute><RoleRoute allowedRoles={['tecnico']}><AppLayout><MeusTrabalhos /></AppLayout></RoleRoute></ProtectedRoute>} />
             <Route path="/vendedor/trabalhos" element={<ProtectedRoute><RoleRoute allowedRoles={['vendedor']}><AppLayout><MeusAgendamentos /></AppLayout></RoleRoute></ProtectedRoute>} />
