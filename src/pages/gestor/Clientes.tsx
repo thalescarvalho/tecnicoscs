@@ -13,8 +13,9 @@ import { useAuth } from '@/hooks/useAuth';
 type Cliente = Tables<'clientes'> & { vendedor?: string | null };
 
 export default function Clientes() {
-  const { role } = useAuth();
+  const { role, user } = useAuth();
   const canDelete = role === 'gestor' || role === 'admin';
+  const isVendedor = role === 'vendedor';
   const [clientes, setClientes] = useState<Cliente[]>([]);
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -61,13 +62,14 @@ export default function Clientes() {
     }
     setSaving(true);
 
-    const payload = {
+    const payload: any = {
       nome: nome.trim(),
       endereco: endereco.trim(),
       telefone: telefone.trim(),
       email: email.trim() || null,
       vendedor: vendedor.trim() || null,
     };
+    if (isVendedor && !editingId) payload.vendedor_id = user!.id;
 
     if (editingId) {
       const { error } = await supabase.from('clientes').update(payload).eq('id', editingId);
