@@ -82,7 +82,7 @@ const App = () => (
             <Route path="/producao" element={<ProtectedRoute><RoleRoute allowedRoles={['gestor']}><AppLayout><Producao /></AppLayout></RoleRoute></ProtectedRoute>} />
             <Route path="/avaliacoes" element={<ProtectedRoute><RoleRoute allowedRoles={['gestor']}><AppLayout><Avaliacoes /></AppLayout></RoleRoute></ProtectedRoute>} />
             <Route path="/avaliacao" element={<AvaliacaoPublica />} />
-            <Route path="/usuarios" element={<ProtectedRoute><RoleRoute allowedRoles={['gestor']}><AppLayout><Usuarios /></AppLayout></RoleRoute></ProtectedRoute>} />
+            <Route path="/usuarios" element={<ProtectedRoute>{(() => { const { role } = useAuth(); return role === 'admin' ? <AppLayout><Usuarios /></AppLayout> : <Navigate to="/dashboard" replace />; })()}</ProtectedRoute>} />
             <Route path="/clientes" element={<ProtectedRoute><RoleRoute allowedRoles={['gestor', 'vendedor']}><AppLayout><Clientes /></AppLayout></RoleRoute></ProtectedRoute>} />
             <Route path="/meus-trabalhos" element={<ProtectedRoute><RoleRoute allowedRoles={['tecnico']}><AppLayout><MeusTrabalhos /></AppLayout></RoleRoute></ProtectedRoute>} />
             <Route path="/vendedor/trabalhos" element={<ProtectedRoute><RoleRoute allowedRoles={['vendedor']}><AppLayout><MeusAgendamentos /></AppLayout></RoleRoute></ProtectedRoute>} />
