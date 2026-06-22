@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
-import { Users, Shield, Wrench, Trash2, KeyRound, Crown, ShoppingBag, Mail } from 'lucide-react';
+import { Users, Shield, Wrench, Trash2, KeyRound, Crown, ShoppingBag, Mail, Pencil } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
@@ -21,6 +21,8 @@ export default function Usuarios() {
   const [loading, setLoading] = useState(true);
   const [passwordDialog, setPasswordDialog] = useState<{ open: boolean; userId: string; userName: string }>({ open: false, userId: '', userName: '' });
   const [newPassword, setNewPassword] = useState('');
+  const [nameDialog, setNameDialog] = useState<{ open: boolean; userId: string; currentName: string }>({ open: false, userId: '', currentName: '' });
+  const [newName, setNewName] = useState('');
   const [actionLoading, setActionLoading] = useState(false);
 
   async function fetchUsers() {
@@ -98,6 +100,29 @@ export default function Usuarios() {
     }
   };
 
+  const handleChangeName = async () => {
+    if (!newName || newName.trim().length < 2) {
+      toast.error('Nome deve ter no mínimo 2 caracteres');
+      return;
+    }
+    setActionLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('admin-manage-user', {
+        body: { action: 'update_name', targetUserId: nameDialog.userId, newName: newName.trim() },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      toast.success('Nome atualizado');
+      setNameDialog({ open: false, userId: '', currentName: '' });
+      setNewName('');
+      fetchUsers();
+    } catch (err: any) {
+      toast.error('Erro ao atualizar nome: ' + err.message);
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
   const getRoleIcon = (role?: Enums<'app_role'> | null) => {
     if (role === 'admin') return <Crown className="w-5 h-5" />;
     if (role === 'gestor') return <Shield className="w-5 h-5" />;
@@ -157,6 +182,18 @@ export default function Usuarios() {
                   <SelectItem value="tecnico">Técnico</SelectItem>
                 </SelectContent>
               </Select>
+
+              {isAdmin && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="text-muted-foreground hover:text-primary"
+                  onClick={() => { setNameDialog({ open: true, userId: u.user_id, currentName: u.nome }); setNewName(u.nome); }}
+                  title="Editar nome"
+                >
+                  <Pencil className="w-4 h-4" />
+                </Button>
+              )}
 
               {isGestorOrAdmin && (
                 <Button
@@ -220,6 +257,29 @@ export default function Usuarios() {
               Cancelar
             </Button>
             <Button onClick={handleChangePassword} disabled={actionLoading}>
+              {actionLoading ? 'Salvando...' : 'Salvar'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={nameDialog.open} onOpenChange={(open) => { if (!open) { setNameDialog({ open: false, userId: '', currentName: '' }); setNewName(''); } }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Editar nome de {nameDialog.currentName}</DialogTitle>
+          </DialogHeader>
+          <div className="py-4">
+            <Input
+              placeholder="Novo nome"
+              value={newName}
+              onChange={e => setNewName(e.target.value)}
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => { setNameDialog({ open: false, userId: '', currentName: '' }); setNewName(''); }}>
+              Cancelar
+            </Button>
+            <Button onClick={handleChangeName} disabled={actionLoading}>
               {actionLoading ? 'Salvando...' : 'Salvar'}
             </Button>
           </DialogFooter>
