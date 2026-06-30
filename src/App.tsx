@@ -21,6 +21,7 @@ import MeusAgendamentos from "./pages/vendedor/MeusAgendamentos";
 import AgendarTrabalho from "./pages/vendedor/AgendarTrabalho";
 import TrabalhoDetalhes from "./pages/TrabalhoDetalhes";
 import NotFound from "./pages/NotFound";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 
 const queryClient = new QueryClient();
 
@@ -72,35 +73,37 @@ function AuthRedirect() {
 }
 
 const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <AuthProvider>
-          <Routes>
-            <Route path="/" element={<AuthRedirect />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/dashboard" element={<ProtectedRoute><RoleRoute allowedRoles={['gestor']}><AppLayout><Dashboard /></AppLayout></RoleRoute></ProtectedRoute>} />
-            <Route path="/trabalhos" element={<ProtectedRoute><RoleRoute allowedRoles={['gestor']}><AppLayout><Trabalhos /></AppLayout></RoleRoute></ProtectedRoute>} />
-            <Route path="/trabalhos/novo" element={<ProtectedRoute><RoleRoute allowedRoles={['gestor']}><AppLayout><CriarTrabalho /></AppLayout></RoleRoute></ProtectedRoute>} />
-            <Route path="/relatorios" element={<ProtectedRoute><RoleRoute allowedRoles={['gestor']}><AppLayout><Relatorios /></AppLayout></RoleRoute></ProtectedRoute>} />
-            <Route path="/custos" element={<ProtectedRoute><RoleRoute allowedRoles={['gestor']}><AppLayout><RelatorioCustos /></AppLayout></RoleRoute></ProtectedRoute>} />
-            <Route path="/producao" element={<ProtectedRoute><RoleRoute allowedRoles={['gestor']}><AppLayout><Producao /></AppLayout></RoleRoute></ProtectedRoute>} />
-            <Route path="/avaliacoes" element={<ProtectedRoute><RoleRoute allowedRoles={['gestor']}><AppLayout><Avaliacoes /></AppLayout></RoleRoute></ProtectedRoute>} />
-            <Route path="/avaliacao" element={<AvaliacaoPublica />} />
-            <Route path="/usuarios" element={<ProtectedRoute><AdminRoute><AppLayout><Usuarios /></AppLayout></AdminRoute></ProtectedRoute>} />
-            <Route path="/clientes" element={<ProtectedRoute><RoleRoute allowedRoles={['gestor', 'vendedor']}><AppLayout><Clientes /></AppLayout></RoleRoute></ProtectedRoute>} />
-            <Route path="/meus-trabalhos" element={<ProtectedRoute><RoleRoute allowedRoles={['tecnico']}><AppLayout><MeusTrabalhos /></AppLayout></RoleRoute></ProtectedRoute>} />
-            <Route path="/vendedor/trabalhos" element={<ProtectedRoute><RoleRoute allowedRoles={['vendedor']}><AppLayout><MeusAgendamentos /></AppLayout></RoleRoute></ProtectedRoute>} />
-            <Route path="/vendedor/agendar" element={<ProtectedRoute><RoleRoute allowedRoles={['vendedor']}><AppLayout><AgendarTrabalho /></AppLayout></RoleRoute></ProtectedRoute>} />
-            <Route path="/trabalho/:id" element={<ProtectedRoute><AppLayout><TrabalhoDetalhes /></AppLayout></ProtectedRoute>} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </AuthProvider>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
+  <ErrorBoundary>
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <AuthProvider>
+            <Routes>
+              <Route path="/" element={<AuthRedirect />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/dashboard" element={<ProtectedRoute><RoleRoute allowedRoles={['gestor']}><AppLayout><Dashboard /></AppLayout></RoleRoute></ProtectedRoute>} />
+              <Route path="/trabalhos" element={<ProtectedRoute><RoleRoute allowedRoles={['gestor']}><AppLayout><Trabalhos /></AppLayout></RoleRoute></ProtectedRoute>} />
+              <Route path="/trabalhos/novo" element={<ProtectedRoute><RoleRoute allowedRoles={['gestor']}><AppLayout><CriarTrabalho /></AppLayout></RoleRoute></ProtectedRoute>} />
+              <Route path="/relatorios" element={<ProtectedRoute><RoleRoute allowedRoles={['gestor']}><AppLayout><Relatorios /></AppLayout></RoleRoute></ProtectedRoute>} />
+              <Route path="/custos" element={<ProtectedRoute><RoleRoute allowedRoles={['gestor']}><AppLayout><RelatorioCustos /></AppLayout></RoleRoute></ProtectedRoute>} />
+              <Route path="/producao" element={<ProtectedRoute><RoleRoute allowedRoles={['gestor']}><AppLayout><Producao /></AppLayout></RoleRoute></ProtectedRoute>} />
+              <Route path="/avaliacoes" element={<ProtectedRoute><RoleRoute allowedRoles={['gestor']}><AppLayout><Avaliacoes /></AppLayout></RoleRoute></ProtectedRoute>} />
+              <Route path="/avaliacao" element={<AvaliacaoPublica />} />
+              <Route path="/usuarios" element={<ProtectedRoute><AdminRoute><AppLayout><Usuarios /></AppLayout></AdminRoute></ProtectedRoute>} />
+              <Route path="/clientes" element={<ProtectedRoute><RoleRoute allowedRoles={['gestor', 'vendedor']}><AppLayout><Clientes /></AppLayout></RoleRoute></ProtectedRoute>} />
+              <Route path="/meus-trabalhos" element={<ProtectedRoute><RoleRoute allowedRoles={['tecnico']}><AppLayout><MeusTrabalhos /></AppLayout></RoleRoute></ProtectedRoute>} />
+              <Route path="/vendedor/trabalhos" element={<ProtectedRoute><RoleRoute allowedRoles={['vendedor']}><AppLayout><MeusAgendamentos /></AppLayout></RoleRoute></ProtectedRoute>} />
+              <Route path="/vendedor/agendar" element={<ProtectedRoute><RoleRoute allowedRoles={['vendedor']}><AppLayout><AgendarTrabalho /></AppLayout></RoleRoute></ProtectedRoute>} />
+              <Route path="/trabalho/:id" element={<ProtectedRoute><AppLayout><TrabalhoDetalhes /></AppLayout></ProtectedRoute>} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </AuthProvider>
+        </BrowserRouter>
+      </TooltipProvider>
+    </QueryClientProvider>
+  </ErrorBoundary>
 );
 
 export default App;
