@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ArrowLeft, MapPin, Clock, Package, Camera, User, Phone, Navigation, Trash2, Download, Share2, FileText, CheckCircle2, CalendarIcon } from 'lucide-react';
+import { ArrowLeft, MapPin, Clock, Package, Camera, Images, User, Phone, Navigation, Trash2, Download, Share2, FileText, CheckCircle2, CalendarIcon } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
@@ -197,16 +197,26 @@ export default function TrabalhoDetalhes() {
   };
 
   const handleFotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file || !user) return;
-    const path = `${user.id}/${id}/${Date.now()}_${file.name}`;
-    const { error: upErr } = await supabase.storage.from('trabalho-fotos').upload(path, file);
-    if (upErr) { toast.error('Erro no upload: ' + upErr.message); return; }
-    const { data: urlData } = supabase.storage.from('trabalho-fotos').getPublicUrl(path);
-    await supabase.from('fotos').insert({ trabalho_id: id!, url: urlData.publicUrl });
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0 || !user) return;
+    const input = e.target;
+    let sucesso = 0;
+    let falhas = 0;
+    for (const file of files) {
+      const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+      const path = `${user.id}/${id}/${Date.now()}_${Math.random().toString(36).slice(2, 8)}_${safeName}`;
+      const { error: upErr } = await supabase.storage.from('trabalho-fotos').upload(path, file);
+      if (upErr) { falhas++; continue; }
+      const { data: urlData } = supabase.storage.from('trabalho-fotos').getPublicUrl(path);
+      const { error: insErr } = await supabase.from('fotos').insert({ trabalho_id: id!, url: urlData.publicUrl });
+      if (insErr) { falhas++; continue; }
+      sucesso++;
+    }
     const { data } = await supabase.from('fotos').select('*').eq('trabalho_id', id!);
     setFotos(data || []);
-    toast.success('Foto adicionada!');
+    input.value = '';
+    if (sucesso > 0) toast.success(`${sucesso} foto(s) adicionada(s)!`);
+    if (falhas > 0) toast.error(`${falhas} foto(s) falharam no upload`);
   };
 
   if (loading) return <div className="flex justify-center py-12"><div className="animate-spin w-8 h-8 border-2 border-primary border-t-transparent rounded-full" /></div>;
@@ -532,14 +542,23 @@ export default function TrabalhoDetalhes() {
           </DialogContent>
         </Dialog>
         {isTecnico && trabalho.status === 'ANDAMENTO' && (
-          <label className="block">
-            <input type="file" accept="image/*" capture="environment" onChange={handleFotoUpload} className="hidden" />
-            <Button variant="outline" className="w-full" size="sm" asChild>
-              <span><Camera className="w-4 h-4 mr-2" /> Adicionar foto</span>
-            </Button>
-          </label>
+          <div className="grid grid-cols-2 gap-2">
+            <label className="block">
+              <input type="file" accept="image/*" capture="environment" onChange={handleFotoUpload} className="hidden" />
+              <Button variant="outline" className="w-full" size="sm" asChild>
+                <span><Camera className="w-4 h-4 mr-2" /> Câmera</span>
+              </Button>
+            </label>
+            <label className="block">
+              <input type="file" accept="image/*" multiple onChange={handleFotoUpload} className="hidden" />
+              <Button variant="outline" className="w-full" size="sm" asChild>
+                <span><Images className="w-4 h-4 mr-2" /> Galeria</span>
+              </Button>
+            </label>
+          </div>
         )}
       </div>
+
 
       {/* Observação do técnico */}
       {isTecnico && trabalho.status === 'ANDAMENTO' && (
