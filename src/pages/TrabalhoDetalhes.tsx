@@ -197,16 +197,26 @@ export default function TrabalhoDetalhes() {
   };
 
   const handleFotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file || !user) return;
-    const path = `${user.id}/${id}/${Date.now()}_${file.name}`;
-    const { error: upErr } = await supabase.storage.from('trabalho-fotos').upload(path, file);
-    if (upErr) { toast.error('Erro no upload: ' + upErr.message); return; }
-    const { data: urlData } = supabase.storage.from('trabalho-fotos').getPublicUrl(path);
-    await supabase.from('fotos').insert({ trabalho_id: id!, url: urlData.publicUrl });
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0 || !user) return;
+    const input = e.target;
+    let sucesso = 0;
+    let falhas = 0;
+    for (const file of files) {
+      const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+      const path = `${user.id}/${id}/${Date.now()}_${Math.random().toString(36).slice(2, 8)}_${safeName}`;
+      const { error: upErr } = await supabase.storage.from('trabalho-fotos').upload(path, file);
+      if (upErr) { falhas++; continue; }
+      const { data: urlData } = supabase.storage.from('trabalho-fotos').getPublicUrl(path);
+      const { error: insErr } = await supabase.from('fotos').insert({ trabalho_id: id!, url: urlData.publicUrl });
+      if (insErr) { falhas++; continue; }
+      sucesso++;
+    }
     const { data } = await supabase.from('fotos').select('*').eq('trabalho_id', id!);
     setFotos(data || []);
-    toast.success('Foto adicionada!');
+    input.value = '';
+    if (sucesso > 0) toast.success(`${sucesso} foto(s) adicionada(s)!`);
+    if (falhas > 0) toast.error(`${falhas} foto(s) falharam no upload`);
   };
 
   if (loading) return <div className="flex justify-center py-12"><div className="animate-spin w-8 h-8 border-2 border-primary border-t-transparent rounded-full" /></div>;
