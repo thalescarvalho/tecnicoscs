@@ -542,14 +542,23 @@ export default function TrabalhoDetalhes() {
           </DialogContent>
         </Dialog>
         {isTecnico && trabalho.status === 'ANDAMENTO' && (
-          <label className="block">
-            <input type="file" accept="image/*" capture="environment" onChange={handleFotoUpload} className="hidden" />
-            <Button variant="outline" className="w-full" size="sm" asChild>
-              <span><Camera className="w-4 h-4 mr-2" /> Adicionar foto</span>
-            </Button>
-          </label>
+          <div className="grid grid-cols-2 gap-2">
+            <label className="block">
+              <input type="file" accept="image/*" capture="environment" onChange={handleFotoUpload} className="hidden" />
+              <Button variant="outline" className="w-full" size="sm" asChild>
+                <span><Camera className="w-4 h-4 mr-2" /> Câmera</span>
+              </Button>
+            </label>
+            <label className="block">
+              <input type="file" accept="image/*" multiple onChange={handleFotoUpload} className="hidden" />
+              <Button variant="outline" className="w-full" size="sm" asChild>
+                <span><Images className="w-4 h-4 mr-2" /> Galeria</span>
+              </Button>
+            </label>
+          </div>
         )}
       </div>
+
 
       {/* Observação do técnico */}
       {isTecnico && trabalho.status === 'ANDAMENTO' && (
