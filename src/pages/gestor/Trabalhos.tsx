@@ -33,7 +33,7 @@ export default function Trabalhos() {
   }, []);
 
   useEffect(() => {
-    async function fetchUsersByRole(role: string, setter: React.Dispatch<React.SetStateAction<Tables<'profiles'>[]>>) {
+    async function fetchUsersByRole(role: 'vendedor' | 'tecnico', setter: React.Dispatch<React.SetStateAction<Tables<'profiles'>[]>>) {
       const { data: roles } = await supabase.from('user_roles').select('user_id').eq('role', role);
       if (roles && roles.length > 0) {
         const { data: profiles } = await supabase.from('profiles').select('*').in('user_id', roles.map(r => r.user_id)).eq('ativo', true);
