@@ -323,12 +323,89 @@ export default function TrabalhoDetalhes() {
           <h1 className="text-lg font-heading font-bold text-foreground truncate">{trabalho.titulo}</h1>
           <div className="flex items-center gap-2 mt-1"><StatusBadge status={trabalho.status} /><PrioridadeBadge prioridade={trabalho.prioridade} /></div>
         </div>
+        {isGestor && canEdit && (
+          <button onClick={openEdit} className="p-2 rounded-lg hover:bg-secondary text-primary transition-colors" title="Editar">
+            <Pencil className="w-5 h-5" />
+          </button>
+        )}
         {isGestor && (
           <button onClick={() => setShowDeleteConfirm(true)} className="p-2 rounded-lg hover:bg-destructive/10 text-destructive transition-colors">
             <Trash2 className="w-5 h-5" />
           </button>
         )}
       </div>
+
+      {/* Edit dialog */}
+      <Dialog open={editOpen} onOpenChange={setEditOpen}>
+        <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
+          <DialogHeader><DialogTitle>Editar trabalho</DialogTitle></DialogHeader>
+          <div className="space-y-3">
+            <div>
+              <label className="text-xs font-medium">Título *</label>
+              <Input value={editTitulo} onChange={e => setEditTitulo(e.target.value)} />
+            </div>
+            <div>
+              <label className="text-xs font-medium">Tipo *</label>
+              <Select value={editTipo} onValueChange={setEditTipo}>
+                <SelectTrigger><SelectValue placeholder="Tipo" /></SelectTrigger>
+                <SelectContent>
+                  {['Desmanche', 'Trabalho técnico', 'Suporte', 'Apresentação'].map(t => (
+                    <SelectItem key={t} value={t}>{t}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <label className="text-xs font-medium">Descrição *</label>
+              <Textarea rows={3} value={editDescricao} onChange={e => setEditDescricao(e.target.value)} />
+            </div>
+            <div>
+              <label className="text-xs font-medium">Técnico</label>
+              <Select value={editTecnico || '_none'} onValueChange={(v) => setEditTecnico(v === '_none' ? '' : v)}>
+                <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="_none">Sem técnico</SelectItem>
+                  {tecnicos.map(t => <SelectItem key={t.user_id} value={t.user_id}>{t.nome}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <label className="text-xs font-medium">Data prevista *</label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button type="button" variant="outline" className={cn('w-full justify-start text-left font-normal', !editData && 'text-muted-foreground')}>
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {editData ? format(dateKeyToLocalDate(editData), 'dd/MM/yyyy', { locale: ptBR }) : 'Selecione'}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={editData ? dateKeyToLocalDate(editData) : undefined}
+                    onSelect={(d) => setEditData(d ? localDateToDateKey(d) : '')}
+                    disabled={(d) => editIsDateOccupied(d)}
+                    modifiers={{ ocupado: (d) => editIsDateOccupied(d) }}
+                    modifiersStyles={{ ocupado: { color: 'hsl(var(--destructive))', backgroundColor: 'hsl(var(--destructive) / 0.12)', fontWeight: 600 } }}
+                    locale={ptBR}
+                    className={cn('p-3 pointer-events-auto')}
+                  />
+                </PopoverContent>
+              </Popover>
+              {editTecnico && editData && editDatasOcupadas.has(editData) && (
+                <p className="text-xs text-destructive mt-1">Técnico já tem trabalho nesta data.</p>
+              )}
+            </div>
+            <div>
+              <label className="text-xs font-medium">Observações</label>
+              <Textarea rows={2} value={editObs} onChange={e => setEditObs(e.target.value)} />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditOpen(false)}>Cancelar</Button>
+            <Button onClick={handleSaveEdit} disabled={editSaving}>{editSaving ? 'Salvando...' : 'Salvar'}</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {showDeleteConfirm && (
         <div className="glass-card rounded-xl p-4 border border-destructive/30 bg-destructive/5 space-y-3">
