@@ -9,14 +9,14 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ArrowLeft, MapPin, Clock, Package, Camera, Images, User, Phone, Navigation, Trash2, Download, Share2, FileText, CheckCircle2, CalendarIcon } from 'lucide-react';
+import { ArrowLeft, MapPin, Clock, Package, Camera, Images, User, Phone, Navigation, Trash2, Download, Share2, FileText, CheckCircle2, CalendarIcon, Pencil } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
-import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
 import { exportTrabalhoPDF, exportVendedorPDF } from '@/lib/pdfExport';
@@ -52,6 +52,53 @@ export default function TrabalhoDetalhes() {
   // Weight editing
   const [editingWeights, setEditingWeights] = useState<Record<string, string>>({});
   const [fotoAmpliadaUrl, setFotoAmpliadaUrl] = useState<string | null>(null);
+
+  // Edit trabalho state (gestor/admin)
+  const [editOpen, setEditOpen] = useState(false);
+  const [editTitulo, setEditTitulo] = useState('');
+  const [editDescricao, setEditDescricao] = useState('');
+  const [editTipo, setEditTipo] = useState('');
+  const [editData, setEditData] = useState('');
+  const [editTecnico, setEditTecnico] = useState<string>('');
+  const [editObs, setEditObs] = useState('');
+  const [editSaving, setEditSaving] = useState(false);
+  const { datasOcupadas: editDatasOcupadas, isDateOccupied: editIsDateOccupied } = useTecnicoDatasOcupadas(editTecnico || null, id);
+
+  const openEdit = () => {
+    if (!trabalho) return;
+    setEditTitulo(trabalho.titulo);
+    setEditDescricao(trabalho.descricao);
+    setEditTipo(trabalho.tipo_servico);
+    setEditData(trabalho.data_prevista);
+    setEditTecnico(trabalho.tecnico_id || '');
+    setEditObs(trabalho.observacoes_gestor || '');
+    setEditOpen(true);
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editTitulo || !editDescricao || !editTipo || !editData) {
+      toast.error('Preencha os campos obrigatórios'); return;
+    }
+    if (editTecnico && editDatasOcupadas.has(editData)) {
+      toast.error('O técnico já possui trabalho nessa data'); return;
+    }
+    setEditSaving(true);
+    const { error } = await supabase.from('trabalhos').update({
+      titulo: editTitulo,
+      descricao: editDescricao,
+      tipo_servico: editTipo,
+      data_prevista: editData,
+      tecnico_id: editTecnico || null,
+      observacoes_gestor: editObs || null,
+    }).eq('id', id!);
+    setEditSaving(false);
+    if (error) { toast.error('Erro ao salvar: ' + error.message); return; }
+    toast.success('Trabalho atualizado');
+    setEditOpen(false);
+    fetchData();
+  };
+
+  const canEdit = trabalho?.status === 'AGUARDANDO_APROVACAO' || trabalho?.status === 'PENDENTE';
 
   async function fetchData() {
     const [t, iRes, fRes] = await Promise.all([
