@@ -9,14 +9,14 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ArrowLeft, MapPin, Clock, Package, Camera, Images, User, Phone, Navigation, Trash2, Download, Share2, FileText, CheckCircle2, CalendarIcon } from 'lucide-react';
+import { ArrowLeft, MapPin, Clock, Package, Camera, Images, User, Phone, Navigation, Trash2, Download, Share2, FileText, CheckCircle2, CalendarIcon, Pencil } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
-import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
 import { exportTrabalhoPDF, exportVendedorPDF } from '@/lib/pdfExport';
@@ -52,6 +52,53 @@ export default function TrabalhoDetalhes() {
   // Weight editing
   const [editingWeights, setEditingWeights] = useState<Record<string, string>>({});
   const [fotoAmpliadaUrl, setFotoAmpliadaUrl] = useState<string | null>(null);
+
+  // Edit trabalho state (gestor/admin)
+  const [editOpen, setEditOpen] = useState(false);
+  const [editTitulo, setEditTitulo] = useState('');
+  const [editDescricao, setEditDescricao] = useState('');
+  const [editTipo, setEditTipo] = useState('');
+  const [editData, setEditData] = useState('');
+  const [editTecnico, setEditTecnico] = useState<string>('');
+  const [editObs, setEditObs] = useState('');
+  const [editSaving, setEditSaving] = useState(false);
+  const { datasOcupadas: editDatasOcupadas, isDateOccupied: editIsDateOccupied } = useTecnicoDatasOcupadas(editTecnico || null, id);
+
+  const openEdit = () => {
+    if (!trabalho) return;
+    setEditTitulo(trabalho.titulo);
+    setEditDescricao(trabalho.descricao);
+    setEditTipo(trabalho.tipo_servico);
+    setEditData(trabalho.data_prevista);
+    setEditTecnico(trabalho.tecnico_id || '');
+    setEditObs(trabalho.observacoes_gestor || '');
+    setEditOpen(true);
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editTitulo || !editDescricao || !editTipo || !editData) {
+      toast.error('Preencha os campos obrigatórios'); return;
+    }
+    if (editTecnico && editDatasOcupadas.has(editData)) {
+      toast.error('O técnico já possui trabalho nessa data'); return;
+    }
+    setEditSaving(true);
+    const { error } = await supabase.from('trabalhos').update({
+      titulo: editTitulo,
+      descricao: editDescricao,
+      tipo_servico: editTipo,
+      data_prevista: editData,
+      tecnico_id: editTecnico || null,
+      observacoes_gestor: editObs || null,
+    }).eq('id', id!);
+    setEditSaving(false);
+    if (error) { toast.error('Erro ao salvar: ' + error.message); return; }
+    toast.success('Trabalho atualizado');
+    setEditOpen(false);
+    fetchData();
+  };
+
+  const canEdit = trabalho?.status === 'AGUARDANDO_APROVACAO' || trabalho?.status === 'PENDENTE';
 
   async function fetchData() {
     const [t, iRes, fRes] = await Promise.all([
@@ -276,12 +323,89 @@ export default function TrabalhoDetalhes() {
           <h1 className="text-lg font-heading font-bold text-foreground truncate">{trabalho.titulo}</h1>
           <div className="flex items-center gap-2 mt-1"><StatusBadge status={trabalho.status} /><PrioridadeBadge prioridade={trabalho.prioridade} /></div>
         </div>
+        {isGestor && canEdit && (
+          <button onClick={openEdit} className="p-2 rounded-lg hover:bg-secondary text-primary transition-colors" title="Editar">
+            <Pencil className="w-5 h-5" />
+          </button>
+        )}
         {isGestor && (
           <button onClick={() => setShowDeleteConfirm(true)} className="p-2 rounded-lg hover:bg-destructive/10 text-destructive transition-colors">
             <Trash2 className="w-5 h-5" />
           </button>
         )}
       </div>
+
+      {/* Edit dialog */}
+      <Dialog open={editOpen} onOpenChange={setEditOpen}>
+        <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
+          <DialogHeader><DialogTitle>Editar trabalho</DialogTitle></DialogHeader>
+          <div className="space-y-3">
+            <div>
+              <label className="text-xs font-medium">Título *</label>
+              <Input value={editTitulo} onChange={e => setEditTitulo(e.target.value)} />
+            </div>
+            <div>
+              <label className="text-xs font-medium">Tipo *</label>
+              <Select value={editTipo} onValueChange={setEditTipo}>
+                <SelectTrigger><SelectValue placeholder="Tipo" /></SelectTrigger>
+                <SelectContent>
+                  {['Desmanche', 'Trabalho técnico', 'Suporte', 'Apresentação'].map(t => (
+                    <SelectItem key={t} value={t}>{t}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <label className="text-xs font-medium">Descrição *</label>
+              <Textarea rows={3} value={editDescricao} onChange={e => setEditDescricao(e.target.value)} />
+            </div>
+            <div>
+              <label className="text-xs font-medium">Técnico</label>
+              <Select value={editTecnico || '_none'} onValueChange={(v) => setEditTecnico(v === '_none' ? '' : v)}>
+                <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="_none">Sem técnico</SelectItem>
+                  {tecnicos.map(t => <SelectItem key={t.user_id} value={t.user_id}>{t.nome}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <label className="text-xs font-medium">Data prevista *</label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button type="button" variant="outline" className={cn('w-full justify-start text-left font-normal', !editData && 'text-muted-foreground')}>
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {editData ? format(dateKeyToLocalDate(editData), 'dd/MM/yyyy', { locale: ptBR }) : 'Selecione'}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={editData ? dateKeyToLocalDate(editData) : undefined}
+                    onSelect={(d) => setEditData(d ? localDateToDateKey(d) : '')}
+                    disabled={(d) => editIsDateOccupied(d)}
+                    modifiers={{ ocupado: (d) => editIsDateOccupied(d) }}
+                    modifiersStyles={{ ocupado: { color: 'hsl(var(--destructive))', backgroundColor: 'hsl(var(--destructive) / 0.12)', fontWeight: 600 } }}
+                    locale={ptBR}
+                    className={cn('p-3 pointer-events-auto')}
+                  />
+                </PopoverContent>
+              </Popover>
+              {editTecnico && editData && editDatasOcupadas.has(editData) && (
+                <p className="text-xs text-destructive mt-1">Técnico já tem trabalho nesta data.</p>
+              )}
+            </div>
+            <div>
+              <label className="text-xs font-medium">Observações</label>
+              <Textarea rows={2} value={editObs} onChange={e => setEditObs(e.target.value)} />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditOpen(false)}>Cancelar</Button>
+            <Button onClick={handleSaveEdit} disabled={editSaving}>{editSaving ? 'Salvando...' : 'Salvar'}</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {showDeleteConfirm && (
         <div className="glass-card rounded-xl p-4 border border-destructive/30 bg-destructive/5 space-y-3">
