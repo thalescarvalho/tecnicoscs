@@ -30,7 +30,8 @@ export default function CriarTrabalho() {
   const [titulo, setTitulo] = useState('');
   const [tipoTrabalho, setTipoTrabalho] = useState('');
   const [descricao, setDescricao] = useState('');
-  const [dataPrevista, setDataPrevista] = useState('');
+  const [multiDia, setMultiDia] = useState(false);
+  const [datasPrevistas, setDatasPrevistas] = useState<string[]>([]);
   const [tecnicoId, setTecnicoId] = useState('');
   const [observacoes, setObservacoes] = useState('');
   const [vendedor, setVendedor] = useState('');
@@ -108,12 +109,13 @@ export default function CriarTrabalho() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!clienteNome || !clienteEndereco || !tecnicoId || !titulo || !descricao || !tipoTrabalho || !dataPrevista) {
+    if (!clienteNome || !clienteEndereco || !tecnicoId || !titulo || !descricao || !tipoTrabalho || datasPrevistas.length === 0) {
       toast.error('Preencha todos os campos obrigatórios');
       return;
     }
-    if (datasOcupadas.has(dataPrevista)) {
-      toast.error('O técnico selecionado já possui um trabalho nessa data');
+    const conflito = datasPrevistas.find(d => datasOcupadas.has(d));
+    if (conflito) {
+      toast.error('O técnico já possui trabalho na data ' + conflito.split('-').reverse().join('/'));
       return;
     }
     setLoading(true);
@@ -123,36 +125,33 @@ export default function CriarTrabalho() {
     if (selectedClienteId) {
       clienteId = selectedClienteId;
     } else {
-      // Create or find client
       const { data: existingClients } = await supabase
-        .from('clientes')
-        .select('id')
-        .eq('nome', clienteNome)
-        .limit(1);
-
+        .from('clientes').select('id').eq('nome', clienteNome).limit(1);
       if (existingClients && existingClients.length > 0) {
         clienteId = existingClients[0].id;
       } else {
         const { data: newClient, error: clientError } = await supabase
           .from('clientes')
           .insert({ nome: clienteNome, endereco: clienteEndereco, telefone: '-', vendedor: vendedor || null })
-          .select('id')
-          .single();
+          .select('id').single();
         if (clientError || !newClient) {
           toast.error('Erro ao criar cliente: ' + (clientError?.message || ''));
-          setLoading(false);
-          return;
+          setLoading(false); return;
         }
         clienteId = newClient.id;
       }
     }
 
-    const { error } = await supabase.from('trabalhos').insert({
+    const datasOrdenadas = [...datasPrevistas].sort();
+    const total = datasOrdenadas.length;
+    const rows = datasOrdenadas.map((d, i) => ({
       cliente_id: clienteId,
       tecnico_id: tecnicoId,
       gestor_id: user!.id,
-      titulo, descricao, tipo_servico: tipoTrabalho,
-      data_prevista: dataPrevista,
+      titulo: total > 1 ? `${titulo} (dia ${i + 1}/${total})` : titulo,
+      descricao,
+      tipo_servico: tipoTrabalho,
+      data_prevista: d,
       observacoes_gestor: observacoes || null,
       tem_custos: temCustos,
       ...(temCustos ? {
@@ -162,10 +161,12 @@ export default function CriarTrabalho() {
         custo_hospedagem: parseFloat(custoHospedagem) || 0,
         custo_alimentacao: parseFloat(custoAlimentacao) || 0,
       } : {}),
-    });
+    }));
+
+    const { error } = await supabase.from('trabalhos').insert(rows);
     setLoading(false);
     if (error) { toast.error('Erro ao criar trabalho: ' + error.message); return; }
-    toast.success('Trabalho criado com sucesso!');
+    toast.success(total > 1 ? `${total} trabalhos criados!` : 'Trabalho criado com sucesso!');
     navigate('/trabalhos');
   };
 
@@ -226,48 +227,68 @@ export default function CriarTrabalho() {
           <label className="text-sm font-medium text-foreground">Descrição *</label>
           <Textarea placeholder="Descreva o trabalho..." rows={3} value={descricao} onChange={e => setDescricao(e.target.value)} required />
         </div>
+        <div className="flex items-center gap-2">
+          <Checkbox id="multiDia" checked={multiDia} onCheckedChange={(v) => {
+            const nv = !!v; setMultiDia(nv);
+            if (!nv && datasPrevistas.length > 1) setDatasPrevistas(datasPrevistas.slice(0, 1));
+          }} />
+          <label htmlFor="multiDia" className="text-sm font-medium cursor-pointer">Trabalho de mais de um dia</label>
+        </div>
         <div className="space-y-2">
-          <label className="text-sm font-medium text-foreground">Data prevista *</label>
+          <label className="text-sm font-medium text-foreground">
+            {multiDia ? 'Datas previstas *' : 'Data prevista *'}
+          </label>
           <Popover>
             <PopoverTrigger asChild>
               <Button
                 type="button"
                 variant="outline"
                 className={cn(
-                  'w-full justify-start text-left font-normal',
-                  !dataPrevista && 'text-muted-foreground',
-                  dataPrevista && datasOcupadas.has(dataPrevista) && 'border-destructive/40 text-destructive'
+                  'w-full justify-start text-left font-normal h-auto min-h-10 py-2',
+                  datasPrevistas.length === 0 && 'text-muted-foreground'
                 )}
               >
-                <CalendarIcon className="mr-2 h-4 w-4" />
-                {dataPrevista ? format(dateKeyToLocalDate(dataPrevista), 'dd/MM/yyyy', { locale: ptBR }) : <span>Selecione a data</span>}
+                <CalendarIcon className="mr-2 h-4 w-4 shrink-0" />
+                {datasPrevistas.length === 0 ? (
+                  <span>Selecione {multiDia ? 'as datas' : 'a data'}</span>
+                ) : (
+                  <span className="text-left whitespace-normal">
+                    {[...datasPrevistas].sort().map(d => format(dateKeyToLocalDate(d), 'dd/MM/yyyy', { locale: ptBR })).join(', ')}
+                  </span>
+                )}
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0" align="start">
-              <Calendar
-                mode="single"
-                selected={dataPrevista ? dateKeyToLocalDate(dataPrevista) : undefined}
-                onSelect={(date) => setDataPrevista(date ? localDateToDateKey(date) : '')}
-                disabled={(date) => isDateOccupied(date)}
-                modifiers={{ ocupado: (date) => isDateOccupied(date) }}
-                modifiersStyles={{
-                  ocupado: {
-                    color: 'hsl(var(--destructive))',
-                    backgroundColor: 'hsl(var(--destructive) / 0.12)',
-                    fontWeight: 600,
-                    opacity: 1,
-                  },
-                }}
-                locale={ptBR}
-                className={cn('p-3 pointer-events-auto')}
-              />
+              {multiDia ? (
+                <Calendar
+                  mode="multiple"
+                  selected={datasPrevistas.map(dateKeyToLocalDate)}
+                  onSelect={(dates) => setDatasPrevistas((dates || []).map(localDateToDateKey))}
+                  disabled={(date) => isDateOccupied(date)}
+                  modifiers={{ ocupado: (date) => isDateOccupied(date) }}
+                  modifiersStyles={{ ocupado: { color: 'hsl(var(--destructive))', backgroundColor: 'hsl(var(--destructive) / 0.12)', fontWeight: 600, opacity: 1 } }}
+                  locale={ptBR}
+                  className={cn('p-3 pointer-events-auto')}
+                />
+              ) : (
+                <Calendar
+                  mode="single"
+                  selected={datasPrevistas[0] ? dateKeyToLocalDate(datasPrevistas[0]) : undefined}
+                  onSelect={(date) => setDatasPrevistas(date ? [localDateToDateKey(date)] : [])}
+                  disabled={(date) => isDateOccupied(date)}
+                  modifiers={{ ocupado: (date) => isDateOccupied(date) }}
+                  modifiersStyles={{ ocupado: { color: 'hsl(var(--destructive))', backgroundColor: 'hsl(var(--destructive) / 0.12)', fontWeight: 600, opacity: 1 } }}
+                  locale={ptBR}
+                  className={cn('p-3 pointer-events-auto')}
+                />
+              )}
             </PopoverContent>
           </Popover>
           {tecnicoId && datasOcupadas.size > 0 && (
             <p className="text-xs text-muted-foreground">Datas em vermelho já estão ocupadas para este técnico.</p>
           )}
-          {dataPrevista && datasOcupadas.has(dataPrevista) && (
-            <p className="text-xs font-medium text-destructive">O técnico selecionado já possui um trabalho nesta data.</p>
+          {multiDia && datasPrevistas.length > 1 && (
+            <p className="text-xs text-primary">Serão criados {datasPrevistas.length} trabalhos, um para cada data.</p>
           )}
         </div>
         <div className="space-y-2">
