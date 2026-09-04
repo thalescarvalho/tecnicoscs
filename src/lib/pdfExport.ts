@@ -1,3 +1,4 @@
+import { formatDateKeyBR } from '@/lib/utils';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import type { TrabalhoWithRelations } from './queries';
@@ -32,7 +33,7 @@ export function exportTrabalhoPDF(
     ['Título', trabalho.titulo],
     ['Status', trabalho.status],
     ['Tipo', trabalho.tipo_servico],
-    ['Data Prevista', new Date(trabalho.data_prevista).toLocaleDateString('pt-BR')],
+    ['Data Prevista', formatDateKeyBR(trabalho.data_prevista)],
     ['Cliente', trabalho.clientes?.nome || '—'],
     ['Endereço', trabalho.clientes?.endereco || '—'],
     ['Técnico', trabalho.tecnico_profile?.nome || '—'],
