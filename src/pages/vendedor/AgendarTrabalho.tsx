@@ -23,6 +23,8 @@ export default function AgendarTrabalho() {
   const [descricao, setDescricao] = useState('');
   const [dataPrevista, setDataPrevista] = useState('');
   const [observacoes, setObservacoes] = useState('');
+  const [tecnicoId, setTecnicoId] = useState('');
+  const [tecnicos, setTecnicos] = useState<Tables<'profiles'>[]>([]);
 
   // Autocomplete
   const [clientes, setClientes] = useState<Tables<'clientes'>[]>([]);
@@ -39,6 +41,17 @@ export default function AgendarTrabalho() {
 
   useEffect(() => {
     supabase.from('clientes').select('*').order('nome').then(({ data }) => setClientes(data || []));
+  }, []);
+
+  useEffect(() => {
+    async function fetchTecnicos() {
+      const { data: roles } = await supabase.from('user_roles').select('user_id').eq('role', 'tecnico');
+      if (!roles || roles.length === 0) return;
+      const { data: profiles } = await supabase.from('profiles').select('*')
+        .in('user_id', roles.map(r => r.user_id)).eq('ativo', true).order('nome');
+      setTecnicos(profiles || []);
+    }
+    fetchTecnicos();
   }, []);
 
   useEffect(() => {
@@ -112,6 +125,7 @@ export default function AgendarTrabalho() {
       titulo, descricao,
       tipo_servico: tipoTrabalho,
       data_prevista: dataPrevista,
+      tecnico_id: tecnicoId || null,
       status: 'AGUARDANDO_APROVACAO' as any,
       observacoes_gestor: observacoes || null,
     } as any).select('id').single();
@@ -179,6 +193,19 @@ export default function AgendarTrabalho() {
         <div className="space-y-2">
           <label className="text-sm font-medium text-foreground">Data prevista *</label>
           <Input type="date" value={dataPrevista} onChange={e => setDataPrevista(e.target.value)} required />
+        </div>
+        <div className="space-y-2">
+          <label className="text-sm font-medium text-foreground">Técnico sugerido</label>
+          <Select value={tecnicoId} onValueChange={setTecnicoId}>
+            <SelectTrigger><SelectValue placeholder="Selecione um técnico (opcional)" /></SelectTrigger>
+            <SelectContent>
+              {tecnicos.map(t => <SelectItem key={t.user_id} value={t.user_id}>{t.nome}</SelectItem>)}
+            </SelectContent>
+          </Select>
+          <p className="text-[11px] text-muted-foreground">
+            A escolha é apenas uma sugestão: a disponibilidade depende da agenda do técnico e o gestor confirma
+            (ou troca) o técnico na aprovação.
+          </p>
         </div>
         <div className="space-y-2">
           <label className="text-sm font-medium text-foreground">Observações</label>
