@@ -2,6 +2,7 @@ import type { Tables } from '@/integrations/supabase/types';
 import { StatusBadge, PrioridadeBadge } from './StatusBadge';
 import { Calendar, MapPin, User } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { formatDateKeyBR } from '@/lib/utils';
 
 type Trabalho = Tables<'trabalhos'> & {
   clientes?: Tables<'clientes'> | null;
@@ -38,7 +39,7 @@ export function WorkCard({ trabalho, showTecnico = true }: WorkCardProps) {
         )}
         <span className="flex items-center gap-1 ml-auto">
           <Calendar className="w-3 h-3" />
-          {new Date(trabalho.data_prevista).toLocaleDateString('pt-BR')}
+          {formatDateKeyBR(trabalho.data_prevista)}
         </span>
       </div>
     </button>
